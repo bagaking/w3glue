@@ -1,0 +1,17 @@
+{
+  "name": "w3glue",
+  "version": "0.0.1",
+  "description": "a liberary which provide the glue-protocal to communicate with geth nodes.",
+  "main": "main.js",
+  "repository": "git@github.com:bagaking/w3glue.git",
+  "author": "bagaking <zfaustk@qq.com>",
+  "license": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "config-lite": "^2.1.0",
+    "web3": "^1.0.0-beta.36"
+  },
+  "devDependencies": {
+    "mocha": "^5.2.0"
+  }
+}
