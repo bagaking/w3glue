@@ -51,15 +51,16 @@ export class Contractance {
      * Deploy the contract to target network
      * @see https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html#deploy
      * @param {string} bitCode
-     * @param {[]} args
-     * @returns {Contractance}
+     * @param {string} uAddress - the address of publisher
+     * @param {Array} args
+     * @returns {Promise<Contractance>}
      */
-    async deploy(bitCode, pubKey, ...args) {
+    async deploy(bitCode, uAddress, ...args) {
         let newContractInstance = await this._contract.deploy({
             data: bitCode,
             arguments: args
         }).send({
-            from: pubKey,
+            from: uAddress,
             gas: 1500000,
             gasPrice: '30000000000000'
         }, function (error, transactionHash) {
