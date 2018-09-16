@@ -1,17 +1,87 @@
 /**
  * Instance of contract
+ * @see https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html
  */
 export class Contractance {
 
+    _pInstance = null
+
+    _contract = null
+
     /**
      * Create a contract of a provider
+     * @see https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html#new-contract
      * @param {Provider} pInstance - instance of provider
      * @param {Object} abi - contract's abi interface
      * @param {string} cAddress - contract's address
      */
-    constructor(pInstance, abi, cAddress) {
-        this.pInstance = pInstance
-        this.contract = new this.pInstance.eth.Contract(abi, cAddress)
+    constructor(pInstance, abi) {
+        this._pInstance = pInstance
+        this._contract = new this._pInstance.eth.Contract(abi)
+    }
+
+    /**
+     * Get cAddress of the contract
+     * @returns {string}
+     */
+    get cAddress() {
+        return this._contract.options.address
+    }
+
+    /**
+     * Get abiArray(jsonInterface) of the contract
+     * @returns {string}
+     */
+    get abi() {
+        return this._contract.options.jsonInterface
+    }
+
+    /**
+     * Attach the contract to an c-address
+     * @see https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html#options
+     * @param {string} cAddress - address of the contract
+     * @returns {Contractance}
+     */
+    attach(cAddress) {
+        this._contract.options.address = cAddress
+        return this
+    }
+
+    /**
+     * Deploy the contract to target network
+     * @see https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html#deploy
+     * @param {string} bitCode
+     * @param {[]} args
+     * @returns {Contractance}
+     */
+    async deploy(bitCode, pubKey, ...args) {
+        let newContractInstance = await this._contract.deploy({
+            data: bitCode,
+            arguments: args
+        }).send({
+            from: pubKey,
+            gas: 1500000,
+            gasPrice: '30000000000000'
+        }, function (error, transactionHash) {
+            console.log("deploy tx hash:" + transactionHash)
+        })
+            .on('error', function (error) {
+                console.error(error);
+            })
+            .on('transactionHash', function (transactionHash) {
+                console.log("hash:", transactionHash)
+            })
+            .on('receipt', function (receipt) {
+                console.log(receipt.contractAddress); // contains the new contract address
+            })
+            .on('confirmation', function (confirmationNumber, receipt) {
+                console.log("receipt,", receipt);
+            })
+            .catch(function (err) {
+                console.log(err)
+            })
+        this._contract = newContractInstance
+        return this
     }
 
     /**
@@ -66,8 +136,8 @@ export class Contractance {
  */
 export class CERC20 extends Contractance {
 
-    constructor(pInstance, abi, cAddress) {
-        super(pInstance, abi, cAddress)
+    constructor(pInstance, abi) {
+        super(pInstance, abi)
     }
 
     async GetBalance(addr) {
