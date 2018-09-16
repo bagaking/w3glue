@@ -1,4 +1,4 @@
-import {Contractance} from "../contractance";
+import Contractance from "../contractance";
 
 /**
  * contract which implement interfaces of erc20
@@ -26,16 +26,27 @@ export default class CERC20 extends Contractance {
         super(pInstance, abi)
     }
 
+    // ==================================== region call
+
     async totalSupply() {
         return await this.callAsync("totalSupply")
     }
 
-    async balanceOf(addr) {
+    async balanceOf(tokenOwner) {
         return await this.callAsync("balanceOf", addr)
     }
 
-    async balanceOf(addr) {
+    async allowance(tokenOwner, spender) {
         return await this.callAsync("balanceOf", addr)
     }
+
+    // ==================================== todo : region transfer
+
+    // ==================================== todo : region event
+
+    // OnTransfer(cb){
+    //     this.listen("Transfer", )
+    // }
+
 
 }
