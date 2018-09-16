@@ -16,7 +16,7 @@ import {PromiseMethodCall} from '../util'
 /**
  * Web3 Provider
  */
-export default class Provider {
+class Provider {
 
     /**
      * Enum of providers' type
@@ -174,10 +174,19 @@ export default class Provider {
      * Load a contract of the provider, and bind it to specific tag
      * @param {string} tag - the tag to bind
      * @param {Object} abi - abi of the contract
-     * @param {string} cAddr : address of the contract
+     * @param {string} cAddress - address of the contract
      */
-    loadContract(tag, abi, cAddr) {
-        this._contractances[tag] = new Contractance(this._pInstance, abi).attach(cAddr);
+    loadContract(tag, abi, cAddress) {
+        this.addContract(tag, new Contractance(this._pInstance, abi).attach(cAddress));
+    }
+
+    /**
+     * bind a contract to specific tag
+     * @param {string} tag - the tag to bind
+     * @param {Contractance} contract - the contract instance
+     */
+    addContract(tag, contract) {
+        this._contractances[tag] = contract;
     }
 
     /**
@@ -191,3 +200,5 @@ export default class Provider {
 
 
 }
+
+export default Provider
