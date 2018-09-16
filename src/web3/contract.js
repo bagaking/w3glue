@@ -1,11 +1,26 @@
+/**
+ * Instance of contract
+ */
 export class Contractance {
 
-    constructor(pInstance, abi, cAddr) {
+    /**
+     * Create a contract of a provider
+     * @param {Provider} pInstance - instance of provider
+     * @param {Object} abi - contract's abi interface
+     * @param {string} cAddress - contract's address
+     */
+    constructor(pInstance, abi, cAddress) {
         this.pInstance = pInstance
-        this.contract = new this.pInstance.eth.Contract(abi, cAddr)
+        this.contract = new this.pInstance.eth.Contract(abi, cAddress)
     }
 
-    async CallAsync(methodName, ...args) {
+    /**
+     * Call a method of this contract
+     * @param {string} methodName - name of the method
+     * @param {...any} args - arguments
+     * @returns {any} result
+     */
+    async callAsync(methodName, ...args) {
         console.log('call async ' + methodName + ' ' + args)
 
         return await new Promise(function (resolve, reject) {
@@ -19,7 +34,16 @@ export class Contractance {
         });
     };
 
-    async Listen(eventName, fromBlock, filterFromAddr, filterToAddr, callback) {
+    /**
+     * Listen a event of this contract
+     * @param {string} eventName
+     * @param {number} fromBlock
+     * @param {string} filterFromAddr
+     * @param {string} filterToAddr
+     * @param {function} callback
+     * @returns {Promise<void>}
+     */
+    async listen(eventName, fromBlock, filterFromAddr, filterToAddr, callback) {
         let filter = {}
         if (typeof filterFromAddr !== "undefined") {
             filter._from = filterFromAddr
@@ -35,10 +59,19 @@ export class Contractance {
 
 }
 
+/**
+ * contract which implement interfaces of erc20
+ * @see https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md
+ * @extends Contractance
+ */
 export class CERC20 extends Contractance {
 
+    constructor(pInstance, abi, cAddress) {
+        super(pInstance, abi, cAddress)
+    }
+
     async GetBalance(addr) {
-        return await this.CallAsync("balanceOf", addr)
+        return await this.callAsync("balanceOf", addr)
     }
 
 }
