@@ -1,6 +1,6 @@
 # IDE
 .idea/
-docs/
+docs/gen/
 
 # Logs
 logs
