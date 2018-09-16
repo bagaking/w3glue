@@ -1,6 +1,6 @@
 /**
  * @fileOverview A web3 provider
- * @author bagaking
+ * @author kinghand
  * @version 0.1
  */
 
@@ -11,6 +11,7 @@ import Axios from 'axios'   // document: https://www.kancloud.cn/yunye/axios/234
 
 // ================ local lib
 import {Contractance} from './contractance'
+import {PromiseMethodCall} from '../util/promisify'
 
 /**
  * Web3 Provider
@@ -50,10 +51,18 @@ export class Provider {
 
     /**
      * table of contractances
-     * @type {{string:Contractance}}
+     * @type {{}}
      * @private
      */
     _contractances = {}
+
+    /**
+     * the eth object of pInstance
+     * @returns {Eth}
+     */
+    get eth() {
+        return this._pInstance.eth
+    }
 
     /**
      * Create a new provider
@@ -98,23 +107,6 @@ export class Provider {
         })
     }
 
-    /**
-     * Call a method under provider.eth
-     * @param {string} method - method of the provider's eth block to call
-     * @param {...any} args - arguments
-     * @returns {Promise<void>}
-     */
-    async callEthMethod(method, ...args) {
-        await new Promise((rsv, rsj) => {
-            this._pInstance.eth[method](...args, (err, res) => {
-                if (!err) {
-                    rsv(res)
-                } else {
-                    rsj(err)
-                }
-            })
-        })
-    }
 
     // ========================================================== Region Methods : RPC
 
@@ -124,13 +116,20 @@ export class Provider {
      * @returns rsp of ajax
      */
     async newAccount(pwd) {
-        return await SendJsonRPC("personal_newAccount", pwd)
+        let p = this.eth.personal
+        return await PromiseMethodCall(p.newAccount, p, pwd)
     }
 
-    unlockAccount(web3Instance, pubKey, password, duration) {
-        return this._pInstance.eth.personal.unlockAccount(pubKey, password, duration)
-
+    async unlockAccount(address, password, duration) {
+        let p = this.eth.personal
+        await await PromiseMethodCall(p.unlockAccount, p, address, password, duration)
+        return address
     };
+
+    async sign(dataToSign, address, password) {
+        let p = this.eth.personal
+        return await PromiseMethodCall(p.sign, p, dataToSign, address, password)
+    }
 
     // ========================================================== Region Methods : Provider
 
@@ -141,7 +140,7 @@ export class Provider {
             address: address,
             topics: topics
         }
-        return await this.callEthMethod('getPastLogs', option)
+        return await PromiseMethodCall(this.eth.getPastLogs, this.eth, option)
     }
 
     /**
@@ -149,11 +148,11 @@ export class Provider {
      * @returns {Promise<void>} - block number
      */
     async getBlockNumber() {
-        return await this.callEthMethod('getBlockNumber')
+        return await PromiseMethodCall(this.eth.getBlockNumber, this.eth)
     }
 
     async getBlock(blockNumber, isDetail) {
-        return await this.callEthMethod('getBlock', blockNumber, isDetail)
+        return await PromiseMethodCall(this.eth.getBlock, this.eth, blockNumber, isDetail)
     }
 
     /**
@@ -162,11 +161,11 @@ export class Provider {
      * @returns {Promise<void>}
      */
     async getTransaction(txhash) {
-        return await this.callEthMethod('getTransaction', txhash)
+        return await this.callMethod(this._pInstance.eth.getTransaction, txhash)
     }
 
     async getTransactionReceipt(txhash) {
-        return await this.callEthMethod('getTransactionReceipt', txhash)
+        return await this.callMethod(this._pInstance.eth.getTransactionReceipt, txhash)
     }
 
     // ========================================================== Region Contracts
@@ -189,7 +188,6 @@ export class Provider {
     getContract(tag) {
         return this._contractances[tag]
     }
-
 
 
 }
