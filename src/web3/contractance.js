@@ -5,7 +5,7 @@ import {PromiseMethodCall} from '../util/promisify'
  * Instance of contract
  * @see https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html
  */
-export default class Contractance {
+class Contractance {
 
     /**
      * the web3 instance
@@ -136,3 +136,5 @@ export default class Contractance {
     //todo: transfer
 
 }
+
+export default Contractance

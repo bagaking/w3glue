@@ -7,7 +7,7 @@ import {Contractance} from "../contractance";
  * @desc
  * the interface of contracts
  */
-export default class CERC721 extends Contractance {
+class CERC721 extends Contractance {
 
     constructor(pInstance, abi) {
         super(pInstance, abi)
@@ -26,3 +26,5 @@ export default class CERC721 extends Contractance {
     }
 
 }
+
+export default CERC721

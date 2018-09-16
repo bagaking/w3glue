@@ -20,7 +20,7 @@ import Contractance from "../contractance";
  *  }
  *  ```
  */
-export default class CERC20 extends Contractance {
+class CERC20 extends Contractance {
 
     constructor(pInstance, abi) {
         super(pInstance, abi)
@@ -50,3 +50,5 @@ export default class CERC20 extends Contractance {
 
 
 }
+
+export default CERC20
