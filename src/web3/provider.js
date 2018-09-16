@@ -11,12 +11,12 @@ import Axios from 'axios'   // document: https://www.kancloud.cn/yunye/axios/234
 
 // ================ local lib
 import {Contractance} from './contractance'
-import {PromiseMethodCall} from '../util/promisify'
+import {PromiseMethodCall} from '../util'
 
 /**
  * Web3 Provider
  */
-export class Provider {
+export default class Provider {
 
     /**
      * Enum of providers' type

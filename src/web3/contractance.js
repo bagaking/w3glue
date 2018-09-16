@@ -1,11 +1,24 @@
+// ================ local lib
+import {PromiseMethodCall} from '../util/promisify'
+
 /**
  * Instance of contract
  * @see https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html
  */
-export class Contractance {
+export default class Contractance {
 
+    /**
+     * the web3 instance
+     * @type {Web3}
+     * @private
+     */
     _pInstance = null
 
+    /**
+     * the contract instance
+     * @type {Eth.Contract}
+     * @private
+     */
     _contract = null
 
     /**
@@ -93,16 +106,8 @@ export class Contractance {
      */
     async callAsync(methodName, ...args) {
         console.log('call async ' + methodName + ' ' + args)
-
-        return await new Promise(function (resolve, reject) {
-            this._contract.methods[methodName](...args).call(function (error, result) {
-                if (!error) {
-                    resolve(result)
-                } else {
-                    reject(error)
-                }
-            });
-        });
+        let method = this._contract.methods[methodName](...args)
+        return await PromiseMethodCall(method.call, method)
     };
 
     /**
@@ -112,9 +117,9 @@ export class Contractance {
      * @param {string} filterFromAddr
      * @param {string} filterToAddr
      * @param {function} callback
-     * @returns {Promise<void>}
+     * @returns {Void}
      */
-    async listen(eventName, fromBlock, filterFromAddr, filterToAddr, callback) {
+    listen(eventName, fromBlock, filterFromAddr, filterToAddr, callback) {
         let filter = {}
         if (typeof filterFromAddr !== "undefined") {
             filter._from = filterFromAddr
@@ -126,23 +131,6 @@ export class Contractance {
             filter: filter,
             fromBlock: fromBlock,
         }, callback)
-    }
-
-}
-
-/**
- * contract which implement interfaces of erc20
- * @see https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md
- * @extends Contractance
- */
-export class CERC20 extends Contractance {
-
-    constructor(pInstance, abi) {
-        super(pInstance, abi)
-    }
-
-    async GetBalance(addr) {
-        return await this.callAsync("balanceOf", addr)
     }
 
 }
