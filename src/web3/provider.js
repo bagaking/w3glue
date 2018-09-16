@@ -5,9 +5,9 @@
  */
 
 // ================ packages
-import Web3 from 'web3'
+import Web3 from 'web3'     // document: https://web3js.readthedocs.io/en/1.0/index.html
 import * as net from 'net'
-import Axios from 'axios' // document: https://www.kancloud.cn/yunye/axios/234845
+import Axios from 'axios'   // document: https://www.kancloud.cn/yunye/axios/234845
 
 // ================ local lib
 import {Contractance} from './contractance'
