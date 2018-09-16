@@ -4,19 +4,13 @@
  * @version 0.1
  */
 
+// ================ packages
 import Web3 from 'web3'
 import * as net from 'net'
 import Axios from 'axios' // document: https://www.kancloud.cn/yunye/axios/234845
 
-import {Contractance} from './contract'
-// ====
-
-
-const PROVIDER_TYPE = {
-    HTTP: 0b001,
-    WS: 0b010,
-    IPC: 0b100
-}
+// ================ local lib
+import {Contractance} from './contractance'
 
 /**
  * Web3 Provider
@@ -24,26 +18,62 @@ const PROVIDER_TYPE = {
 export class Provider {
 
     /**
-     * Create a new provider
-     * @param pConf - configuration of the provider's network
+     * Enum of providers' type
+     * @readonly
      */
-    constructor(pConf) {
-        // ====== init fields
-        this.pInstance = new Web3();
-        this.rpcSeq = 1;
-        this.contactances = {}
-        // ====== read conf
-        this.connectString = pConf.connectString;
+    static TYPE = {
+        HTTP: 0b001,
+        WS: 0b010,
+        IPC: 0b100
+    }
+
+    /**
+     * connecting string
+     * @example http://127.0.0.1:3003
+     * @type {string}
+     */
+    connectString = ""
+
+    /**
+     * the sequence number of rpc
+     * @type {number}
+     * @private
+     */
+    _rpcSeq = 1;
+
+    /**
+     * web3 instance
+     * @type {null}
+     * @private
+     */
+    _pInstance = null
+
+    /**
+     * table of contractances
+     * @type {{string:Contractance}}
+     * @private
+     */
+    _contractances = {}
+
+    /**
+     * Create a new provider
+     * @param {TYPE(number)} type - provider's type
+     * @param {string} connectString - configuration of the provider's network
+     */
+    constructor(type, connectString) {
+        this._connectString = connectString;
+
         // ====== create provider
+        this._pInstance = new Web3();
         let provider = null
-        if (pConf.type === PROVIDER_TYPE.HTTP) {
-            provider = new Web3.providers.HttpProvider(this.connectString)
-        } else if (pConf.type === PROVIDER_TYPE.WS) {
-            provider = new Web3.providers.WebsocketProvider(this.connectString)
-        } else if (pConf.type === PROVIDER_TYPE.IPC) {
-            provider = new Web3.providers.IpcProvider(this.connectString, net)
+        if (type === Provider.TYPE.HTTP) {
+            provider = new Web3.providers.HttpProvider(this._connectString)
+        } else if (type === Provider.TYPE.WS) {
+            provider = new Web3.providers.WebsocketProvider(this._connectString)
+        } else if (type === Provider.TYPE.IPC) {
+            provider = new Web3.providers.IpcProvider(this._connectString, net)
         }
-        this.pInstance.setProvider(provider)
+        this._pInstance.setProvider(provider)
     }
 
     // ========================================================== Region Util
@@ -57,7 +87,7 @@ export class Provider {
     async SendJsonRPC(method, ...params) {
         return await Axios.post(this.connectString, {
             "jsonrpc": "2.0",
-            "id": this.rpcSeq++,
+            "id": this._rpcSeq++,
             "method": method,
             "params": params,
         }, {
@@ -76,7 +106,7 @@ export class Provider {
      */
     async CallEthMethod(method, ...args) {
         await new Promise((rsv, rsj) => {
-            this.pInstance.eth[method](...args, (err, res) => {
+            this._pInstance.eth[method](...args, (err, res) => {
                 if (!err) {
                     rsv(res)
                 } else {
@@ -101,8 +131,8 @@ export class Provider {
 
     async GetPastLogs(address, fromBlock, toBlock, topics) {
         let option = {
-            fromBlock: this.pInstance.utils.toHex(fromBlock),
-            toBlock: this.pInstance.utils.toHex(toBlock),
+            fromBlock: this._pInstance.utils.toHex(fromBlock),
+            toBlock: this._pInstance.utils.toHex(toBlock),
             address: address,
             topics: topics
         }
@@ -126,11 +156,11 @@ export class Provider {
      * @param txhash
      * @returns {Promise<void>}
      */
-    async GetTransaction (txhash) {
+    async GetTransaction(txhash) {
         return await this.callEthMethod('getTransaction', txhash)
     }
 
-    async GetTransactionReceipt (txhash) {
+    async GetTransactionReceipt(txhash) {
         return await this.callEthMethod('getTransactionReceipt', txhash)
     }
 
@@ -143,7 +173,7 @@ export class Provider {
      * @param {string} cAddr : address of the contract
      */
     LoadContract(tag, abi, cAddr) {
-        this.contactances[tag] = new Contractance(this.pInstance, abi, cAddr);
+        this._contractances[tag] = new Contractance(this._pInstance, abi, cAddr);
     }
 
     /**
@@ -152,8 +182,9 @@ export class Provider {
      * @returns {Contractance} - the contract
      */
     GetContract(tag) {
-        return this.contactances[tag]
+        return this._contractances[tag]
     }
+
 
 
 }
