@@ -1,6 +1,12 @@
+/**
+ * @fileOverview A web3 provider
+ * @author bagaking
+ * @version 0.1
+ */
+
 import Web3 from 'web3'
 import * as net from 'net'
-import Axios from 'axios'
+import Axios from 'axios' // document: https://www.kancloud.cn/yunye/axios/234845
 
 import {Contractance} from './contract'
 // ====
@@ -12,8 +18,15 @@ const PROVIDER_TYPE = {
     IPC: 0b100
 }
 
+/**
+ * Web3 Provider
+ */
 export class Provider {
 
+    /**
+     * Create a new provider
+     * @param pConf - configuration of the provider's network
+     */
     constructor(pConf) {
         // ====== init fields
         this.pInstance = new Web3();
@@ -37,10 +50,9 @@ export class Provider {
 
     /**
      * Send jsonrpc to remote node (via http)
-     * @param method : jsonrpc method
-     * @param params : jsonrpc params
+     * @param method - jsonrpc method
+     * @param params - jsonrpc params
      * @returns rsp of ajax
-     * @constructor
      */
     async SendJsonRPC(method, ...params) {
         return await Axios.post(this.connectString, {
@@ -58,11 +70,11 @@ export class Provider {
 
     /**
      * Call a method under provider.eth
-     * @param method
-     * @param args
+     * @param {string} method - method of the provider's eth block to call
+     * @param {...any} args - arguments
      * @returns {Promise<void>}
      */
-    async callEthMethod(method, ...args) {
+    async CallEthMethod(method, ...args) {
         await new Promise((rsv, rsj) => {
             this.pInstance.eth[method](...args, (err, res) => {
                 if (!err) {
@@ -77,10 +89,9 @@ export class Provider {
     // ========================================================== Region Methods : RPC
 
     /**
-     *
-     * @param pwd : the password of the new account
+     * Create a new account
+     * @param {string} pwd - the password of the new account
      * @returns rsp of ajax
-     * @constructor
      */
     async NewAccount(pwd) {
         return await SendJsonRPC("personal_newAccount", pwd)
@@ -98,6 +109,10 @@ export class Provider {
         return await this.callEthMethod('getPastLogs', option)
     }
 
+    /**
+     * get current block number
+     * @returns {Promise<void>} - block number
+     */
     async GetBlockNumber() {
         return await this.callEthMethod('getBlockNumber')
     }
@@ -106,6 +121,11 @@ export class Provider {
         return await this.callEthMethod('getBlock', blockNumber, isDetail)
     }
 
+    /**
+     * get transaction info
+     * @param txhash
+     * @returns {Promise<void>}
+     */
     async GetTransaction (txhash) {
         return await this.callEthMethod('getTransaction', txhash)
     }
@@ -117,21 +137,19 @@ export class Provider {
     // ========================================================== Region Contracts
 
     /**
-     *
-     * @param tag : load a contract instance, and bind it to specific tag
-     * @param abi : abi of the contract
-     * @param cAddr : address of the contract
-     * @constructor
+     * Load a contract of the provider, and bind it to specific tag
+     * @param {string} tag - the tag to bind
+     * @param {Object} abi - abi of the contract
+     * @param {string} cAddr : address of the contract
      */
     LoadContract(tag, abi, cAddr) {
         this.contactances[tag] = new Contractance(this.pInstance, abi, cAddr);
     }
 
     /**
-     *
-     * @param tag : get a contract instance using specific tag
-     * @returns {*} : the contract
-     * @constructor
+     * get a contract instance using specific tag
+     * @param {string} tag - the tag binded
+     * @returns {Contractance} - the contract
      */
     GetContract(tag) {
         return this.contactances[tag]
