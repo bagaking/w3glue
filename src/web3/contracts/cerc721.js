@@ -1,3 +1,11 @@
+/**
+ * @fileOverview export standard ERC721 token interface
+ * @author kinghand
+ * @version 0.1
+ */
+
+"use strict"
+
 import {Contractance} from "../contractance";
 
 /**

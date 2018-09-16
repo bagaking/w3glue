@@ -1,3 +1,9 @@
+/**
+ * @fileOverview provide promisify functions the caller by the way
+ * @author kinghand
+ * @version 1.0.0
+ */
+
 let Promisify = (fn, receiver = null) => {
     return (...args) => {
         return new Promise((resolve, reject) => {

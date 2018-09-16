@@ -1,8 +1,10 @@
 /**
- * @fileOverview A web3 provider
+ * @fileOverview the class maintained web3 provider instance
  * @author kinghand
  * @version 0.1
  */
+
+"use strict"
 
 // ================ packages
 import Web3 from 'web3'     // document: https://web3js.readthedocs.io/en/1.0/index.html

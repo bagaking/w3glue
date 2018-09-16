@@ -1,3 +1,11 @@
+/**
+ * @fileOverview the basic class of contract's instance
+ * @author kinghand
+ * @version 0.1
+ */
+
+"use strict"
+
 // ================ local lib
 import {PromiseMethodCall} from '../util/promisify'
 
