@@ -43,7 +43,7 @@ export class Provider {
 
     /**
      * web3 instance
-     * @type {null}
+     * @type {Web3}
      * @private
      */
     _pInstance = null
@@ -84,7 +84,7 @@ export class Provider {
      * @param params - jsonrpc params
      * @returns rsp of ajax
      */
-    async SendJsonRPC(method, ...params) {
+    async sendJsonRPC(method, ...params) {
         return await Axios.post(this.connectString, {
             "jsonrpc": "2.0",
             "id": this._rpcSeq++,
@@ -104,7 +104,7 @@ export class Provider {
      * @param {...any} args - arguments
      * @returns {Promise<void>}
      */
-    async CallEthMethod(method, ...args) {
+    async callEthMethod(method, ...args) {
         await new Promise((rsv, rsj) => {
             this._pInstance.eth[method](...args, (err, res) => {
                 if (!err) {
@@ -123,13 +123,18 @@ export class Provider {
      * @param {string} pwd - the password of the new account
      * @returns rsp of ajax
      */
-    async NewAccount(pwd) {
+    async newAccount(pwd) {
         return await SendJsonRPC("personal_newAccount", pwd)
     }
 
+    unlockAccount(web3Instance, pubKey, password, duration) {
+        return this._pInstance.eth.personal.unlockAccount(pubKey, password, duration)
+
+    };
+
     // ========================================================== Region Methods : Provider
 
-    async GetPastLogs(address, fromBlock, toBlock, topics) {
+    async getPastLogs(address, fromBlock, toBlock, topics) {
         let option = {
             fromBlock: this._pInstance.utils.toHex(fromBlock),
             toBlock: this._pInstance.utils.toHex(toBlock),
@@ -143,11 +148,11 @@ export class Provider {
      * get current block number
      * @returns {Promise<void>} - block number
      */
-    async GetBlockNumber() {
+    async getBlockNumber() {
         return await this.callEthMethod('getBlockNumber')
     }
 
-    async GetBlock(blockNumber, isDetail) {
+    async getBlock(blockNumber, isDetail) {
         return await this.callEthMethod('getBlock', blockNumber, isDetail)
     }
 
@@ -156,11 +161,11 @@ export class Provider {
      * @param txhash
      * @returns {Promise<void>}
      */
-    async GetTransaction(txhash) {
+    async getTransaction(txhash) {
         return await this.callEthMethod('getTransaction', txhash)
     }
 
-    async GetTransactionReceipt(txhash) {
+    async getTransactionReceipt(txhash) {
         return await this.callEthMethod('getTransactionReceipt', txhash)
     }
 
@@ -172,7 +177,7 @@ export class Provider {
      * @param {Object} abi - abi of the contract
      * @param {string} cAddr : address of the contract
      */
-    LoadContract(tag, abi, cAddr) {
+    loadContract(tag, abi, cAddr) {
         this._contractances[tag] = new Contractance(this._pInstance, abi, cAddr);
     }
 
@@ -181,7 +186,7 @@ export class Provider {
      * @param {string} tag - the tag binded
      * @returns {Contractance} - the contract
      */
-    GetContract(tag) {
+    getContract(tag) {
         return this._contractances[tag]
     }
 
