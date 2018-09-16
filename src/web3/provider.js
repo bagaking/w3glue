@@ -178,7 +178,7 @@ export class Provider {
      * @param {string} cAddr : address of the contract
      */
     loadContract(tag, abi, cAddr) {
-        this._contractances[tag] = new Contractance(this._pInstance, abi, cAddr);
+        this._contractances[tag] = new Contractance(this._pInstance, abi).attach(cAddr);
     }
 
     /**

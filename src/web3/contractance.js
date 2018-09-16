@@ -11,7 +11,7 @@ export class Contractance {
     /**
      * Create a contract of a provider
      * @see https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html#new-contract
-     * @param {Provider} pInstance - instance of provider
+     * @param {Web3} pInstance - instance of provider
      * @param {Object} abi - contract's abi interface
      * @param {string} cAddress - contract's address
      */
@@ -95,7 +95,7 @@ export class Contractance {
         console.log('call async ' + methodName + ' ' + args)
 
         return await new Promise(function (resolve, reject) {
-            this.contract.methods[methodName](...args).call(function (error, result) {
+            this._contract.methods[methodName](...args).call(function (error, result) {
                 if (!error) {
                     resolve(result)
                 } else {
@@ -122,7 +122,7 @@ export class Contractance {
         if (typeof filterToAddr !== "undefined") {
             filter._to = filterToAddr
         }
-        this.contract.events[eventName]({
+        this._contract.events[eventName]({
             filter: filter,
             fromBlock: fromBlock,
         }, callback)
