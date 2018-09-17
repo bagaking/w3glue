@@ -1,4 +1,6 @@
 "use strict"
 
-export * from "./util";
-export * from "./web3";
+module.exports = {
+    "util" : require("./util"),
+    "web3" : require("./web3")
+}

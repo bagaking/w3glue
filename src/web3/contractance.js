@@ -7,7 +7,7 @@
 "use strict"
 
 // ================ local lib
-import {PromiseMethodCall} from '../util/promisify'
+const PromiseMethodCall = require('../util/').promisify.PromiseMethodCall
 
 /**
  * Instance of contract
@@ -133,4 +133,4 @@ class Contractance {
 
 }
 
-export default Contractance
+module.exports = Contractance

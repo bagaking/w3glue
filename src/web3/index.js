@@ -1,5 +1,7 @@
 "use strict"
 
-export Provider from "./provider";
-export Contractance from "./contractance";
-export * from "./contracts";
+module.exports = {
+    "Provider": require("./provider"),
+    "Contractance": require("./contractance"),
+    "Default": require("./contracts"),
+}

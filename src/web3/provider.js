@@ -7,13 +7,19 @@
 "use strict"
 
 // ================ packages
-import Web3 from 'web3'     // document: https://web3js.readthedocs.io/en/1.0/index.html
-import * as net from 'net'
-import Axios from 'axios'   // document: https://www.kancloud.cn/yunye/axios/234845
+const Web3 = require('web3')     // document: https://web3js.readthedocs.io/en/1.0/index.html
+const net = require('net')
+const Axios = require('axios')   // document: https://www.kancloud.cn/yunye/axios/234845
 
 // ================ local lib
-import {Contractance} from './contractance'
-import {PromiseMethodCall} from '../util'
+const Contractance = require('./contractance')
+const PromiseMethodCall = require('../util/promisify').PromiseMethodCall
+
+const _TYPE = {
+    HTTP: 0b001,
+    WS: 0b010,
+    IPC: 0b100
+}
 
 /**
  * Web3 Provider
@@ -24,10 +30,8 @@ class Provider {
      * Enum of providers' type
      * @readonly
      */
-    static TYPE = {
-        HTTP: 0b001,
-        WS: 0b010,
-        IPC: 0b100
+    static get TYPE() {
+        return _TYPE
     }
 
     /**
@@ -179,4 +183,4 @@ class Provider {
 
 }
 
-export default Provider
+module.exports = Provider

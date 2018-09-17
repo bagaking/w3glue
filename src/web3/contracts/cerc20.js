@@ -6,7 +6,7 @@
 
 "use strict"
 
-import Contractance from "../contractance";
+const Contractance = require("../contractance")
 
 /**
  * contract which implement interfaces of erc20
@@ -59,4 +59,4 @@ class CERC20 extends Contractance {
 
 }
 
-export default CERC20
+module.exports = CERC20

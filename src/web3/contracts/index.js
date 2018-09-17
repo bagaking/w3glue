@@ -1,4 +1,6 @@
 "use strict"
 
-export CERC721 from './cerc721'
-export CERC20 from './cerc20'
+module.exports={
+    "CERC721" : require("./cerc721"),
+    "CERC20" : require("./cerc20"),
+}
