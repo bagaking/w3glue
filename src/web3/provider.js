@@ -31,49 +31,17 @@ class Provider {
     }
 
     /**
-     * connecting string
-     * @example http://127.0.0.1:3003
-     * @type {string}
-     */
-    connectString = ""
-
-    /**
-     * the sequence number of rpc
-     * @type {number}
-     * @private
-     */
-    _rpcSeq = 1;
-
-    /**
-     * web3 instance
-     * @type {Web3}
-     * @private
-     */
-    _pInstance = null
-
-    /**
-     * table of contractances
-     * @type {{}}
-     * @private
-     */
-    _contractances = {}
-
-    /**
-     * the eth object of pInstance
-     * @returns {Eth}
-     */
-    get eth() {
-        return this._pInstance.eth
-    }
-
-    /**
      * Create a new provider
      * @param {TYPE(number)} type - provider's type
      * @param {string} connectString - configuration of the provider's network
      */
     constructor(type, connectString) {
+        /** @type {string} */
         this._connectString = connectString;
-
+        /** @type {number} */
+        this._rpcSeq = 1
+        /** @type {{}} */
+        this._contractances = {}
         // ====== create provider
         this._pInstance = new Web3();
         let provider = null
@@ -87,6 +55,14 @@ class Provider {
         this._pInstance.setProvider(provider)
     }
 
+    /**
+     * the eth object of pInstance
+     * @returns {Eth}
+     */
+    get eth() {
+        return this._pInstance.eth
+    }
+
     // ========================================================== Region Util
 
     /**
@@ -96,7 +72,7 @@ class Provider {
      * @returns rsp of ajax
      */
     async sendJsonRPC(method, ...params) {
-        return await Axios.post(this.connectString, {
+        return await Axios.post(this._connectString, {
             "jsonrpc": "2.0",
             "id": this._rpcSeq++,
             "method": method,

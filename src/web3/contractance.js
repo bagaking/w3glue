@@ -16,20 +16,6 @@ import {PromiseMethodCall} from '../util/promisify'
 class Contractance {
 
     /**
-     * the web3 instance
-     * @type {Web3}
-     * @private
-     */
-    _pInstance = null
-
-    /**
-     * the contract instance
-     * @type {Eth.Contract}
-     * @private
-     */
-    _contract = null
-
-    /**
      * Create a contract of a provider
      * @see https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html#new-contract
      * @param {Web3} pInstance - instance of provider
@@ -37,7 +23,9 @@ class Contractance {
      * @param {string} cAddress - contract's address
      */
     constructor(pInstance, abi) {
+        /** @type {Web3} */
         this._pInstance = pInstance
+        /** @type {Eth.Contract} */
         this._contract = new this._pInstance.eth.Contract(abi)
     }
 
