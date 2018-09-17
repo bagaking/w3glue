@@ -1,10 +1,13 @@
+# Mac
+**/.DS_Store
+
 # Build
 dist/
+docs/gen/
+yarn.lock
 
 # IDE
-**/.DS_Store
 .idea/
-docs/gen/
 
 # Logs
 logs
