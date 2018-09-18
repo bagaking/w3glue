@@ -8,6 +8,10 @@
 
 // ================ local lib
 const PromiseMethodCall = require('../util/').promisify.PromiseMethodCall
+const Provider = require('./provider')
+
+
+let contractances = {}
 
 /**
  * Instance of contract
@@ -16,13 +20,33 @@ const PromiseMethodCall = require('../util/').promisify.PromiseMethodCall
 class Contractance {
 
     /**
+     * bind a contract to specific tag
+     * @param {string} tag - the tag to bind
+     * @param {Array} abi - the abi data
+     * @param {string} address - the address to attach
+     */
+    static create(tag, abi, address = ''){
+        contractances[tag] = new constructor(abi)
+        if(address !== ''){
+            contractances.attach(address)
+        }
+    }
+
+    /**
+     * get a contract instance using specific tag
+     * @param {string} tag - the tag binded
+     * @returns {Contractance} - the contract
+     */
+    static visit(tag) {
+        return contractances[tag]
+    }
+
+    /**
      * Create a contract of a provider
      * @see https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html#new-contract
-     * @param {Web3} pInstance - instance of provider
      * @param {Object} abi - contract's abi interface
-     * @param {string} cAddress - contract's address
      */
-    constructor(pInstance, abi) {
+    constructor(abi) {
         /** @type {Web3} */
         this._pInstance = pInstance
         /** @type {Eth.Contract} */
@@ -91,6 +115,34 @@ class Contractance {
                 console.log(err)
             })
         this._contract = newContractInstance
+        return this
+    }
+
+
+    /**
+     * Select HTTP
+     * @returns {Contractance} this
+     */
+    get $HTTP(){
+        this._pInstance = Provider.$.HTTP._pInstance
+        return this
+    }
+
+    /**
+     * Select WS
+     * @returns {Contractance} this
+     */
+    get $WS(){
+        this._pInstance = Provider.$.WS._pInstance
+        return this
+    }
+
+    /**
+     * Select IPC
+     * @returns {Contractance} this
+     */
+    get $IPC(){
+        this._pInstance = Provider.$.IPC._pInstance
         return this
     }
 

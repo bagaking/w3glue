@@ -21,17 +21,45 @@ const _TYPE = {
     IPC: 0b100
 }
 
+class ProviderSelector {
+
+    constructor(){
+        this.cur = _TYPE.HTTP
+    }
+
+    set(type, provider){
+        this.cur = type
+        this[this.cur] = provider
+    }
+
+    get(){
+        return this[this.cur]
+    }
+
+    get HTTP() {
+        this.cur = _TYPE.HTTP
+        return get()
+    }
+
+    get WS() {
+        this.cur = _TYPE.WS
+        return get()
+    }
+
+    get IPC() {
+        this.cur = _TYPE.IPC
+        return get()
+    }
+}
+let selector = new ProviderSelector()
+
 /**
  * Web3 Provider
  */
 class Provider {
 
-    /**
-     * Enum of providers' type
-     * @readonly
-     */
-    static get TYPE() {
-        return _TYPE
+    static get $() {
+        return selector
     }
 
     /**
@@ -57,6 +85,8 @@ class Provider {
             provider = new Web3.providers.IpcProvider(this._connectString, net)
         }
         this._pInstance.setProvider(provider)
+
+        Provider.$.set(type, this)
     }
 
     /**
@@ -149,37 +179,6 @@ class Provider {
     async getTransactionReceipt(txhash) {
         return await this.callMethod(this._pInstance.eth.getTransactionReceipt, txhash)
     }
-
-    // ========================================================== Region Contracts
-
-    /**
-     * Load a contract of the provider, and bind it to specific tag
-     * @param {string} tag - the tag to bind
-     * @param {Object} abi - abi of the contract
-     * @param {string} cAddress - address of the contract
-     */
-    loadContract(tag, abi, cAddress) {
-        this.addContract(tag, new Contractance(this._pInstance, abi).attach(cAddress));
-    }
-
-    /**
-     * bind a contract to specific tag
-     * @param {string} tag - the tag to bind
-     * @param {Contractance} contract - the contract instance
-     */
-    addContract(tag, contract) {
-        this._contractances[tag] = contract;
-    }
-
-    /**
-     * get a contract instance using specific tag
-     * @param {string} tag - the tag binded
-     * @returns {Contractance} - the contract
-     */
-    getContract(tag) {
-        return this._contractances[tag]
-    }
-
 
 }
 
