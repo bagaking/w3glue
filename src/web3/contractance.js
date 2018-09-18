@@ -11,7 +11,9 @@ const PromiseMethodCall = require('../util/').promisify.PromiseMethodCall
 const Provider = require('./provider')
 
 
-let contractances = {}
+let contractances = {
+   // __anonymous : []
+}
 
 /**
  * Instance of contract
@@ -24,12 +26,15 @@ class Contractance {
      * @param {string} tag - the tag to bind
      * @param {Array} abi - the abi data
      * @param {string} address - the address to attach
+     * @example
+     * `let c = Contractance.create(tag, abi[, address])[.attach(address)]`
      */
     static create(tag, abi, address = ''){
         contractances[tag] = new constructor(abi)
         if(address !== ''){
             contractances.attach(address)
         }
+        return contractances[tag]
     }
 
     /**

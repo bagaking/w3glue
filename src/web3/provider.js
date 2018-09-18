@@ -12,7 +12,6 @@ const net = require('net')
 const Axios = require('axios')   // document: https://www.kancloud.cn/yunye/axios/234845
 
 // ================ local lib
-const Contractance = require('./contractance')
 const PromiseMethodCall = require('../util/promisify').PromiseMethodCall
 
 const _TYPE = {
@@ -59,6 +58,8 @@ let selector = new ProviderSelector()
 
 /**
  * Web3 Provider
+ * @example
+ * `Provider.$.Http.set("http://a.b.c:d")`
  */
 class Provider {
 
