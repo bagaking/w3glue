@@ -2,16 +2,18 @@
   "name": "w3glue",
   "version": "0.0.1",
   "description": "a liberary which provide the glue-protocal to communicate with geth nodes.",
-  "main": "dist/glue.js",
+  "main": "src/glue.js",
   "repository": "git@github.com:bagaking/w3glue.git",
   "author": "bagaking <zfaustk@qq.com>",
   "license": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
   "scripts": {
-    "start": "babel src -d dist -s inline"
+    "build": "webpack -p",
+    "babel": "babel src -d lib -s inline"
   },
   "dependencies": {
     "axios": "^0.18.0",
     "babel-runtime": "^6.26.0",
+    "net": "^1.0.2",
     "web3": "^1.0.0-beta.36"
   },
   "peerDependencies": {
@@ -31,6 +33,8 @@
     "gulp-jsdoc3": "^2.0.0",
     "gulp-mocha": "^6.0.0",
     "mocha": "^5.2.0",
-    "should": "^13.2.3"
+    "should": "^13.2.3",
+    "webpack": "^4.19.0",
+    "webpack-cli": "^3.1.0"
   }
 }
