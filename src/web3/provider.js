@@ -23,13 +23,17 @@ const _TYPE = {
 
 class ProviderSelector {
 
+    static get TYPE(){
+        return _TYPE
+    }
+
     constructor(){
         this.cur = _TYPE.HTTP
     }
 
-    set(type, provider){
+    set(connectString){
         this.cur = type
-        this[this.cur] = provider
+        this[this.cur] = new Provider(this.cur, provider)
     }
 
     get(){
@@ -57,10 +61,6 @@ let selector = new ProviderSelector()
  * Web3 Provider
  */
 class Provider {
-
-    static get TYPE(){
-        return _TYPE
-    }
 
     static get $() {
         return selector
