@@ -58,6 +58,10 @@ let selector = new ProviderSelector()
  */
 class Provider {
 
+    static get TYPE(){
+        return _TYPE
+    }
+
     static get $() {
         return selector
     }
