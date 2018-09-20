@@ -12,8 +12,7 @@ const net = require('net')
 const Axios = require('axios')   // document: https://www.kancloud.cn/yunye/axios/234845
 
 // ================ local lib
-const Contractance = require('./contractance')
-const PromiseMethodCall = require('../util/promisify').PromiseMethodCall
+const PromiseMethodCall = require("../util/promisify").PromiseMethodCall
 
 const _TYPE = {
     HTTP: 0b001,
@@ -21,17 +20,51 @@ const _TYPE = {
     IPC: 0b100
 }
 
+class ProviderSelector {
+
+    static get TYPE(){
+        return _TYPE
+    }
+
+    constructor(){
+        this.cur = _TYPE.HTTP
+    }
+
+    set(connectString) {
+        this[this.cur] = new Provider(this.cur, connectString)
+        return this
+    }
+
+    get() {
+        return this[this.cur]
+    }
+
+    get HTTP() {
+        this.cur = _TYPE.HTTP
+        return this
+    }
+
+    get WS() {
+        this.cur = _TYPE.WS
+        return this
+    }
+
+    get IPC() {
+        this.cur = _TYPE.IPC
+        return this
+    }
+}
+let selector = new ProviderSelector()
+
 /**
  * Web3 Provider
+ * @example
+ * `Provider.$.Http.set("http://a.b.c:d")`
  */
 class Provider {
 
-    /**
-     * Enum of providers' type
-     * @readonly
-     */
-    static get TYPE() {
-        return _TYPE
+    static get $() {
+        return selector
     }
 
     /**
@@ -48,15 +81,17 @@ class Provider {
         this._contractances = {}
         // ====== create provider
         this._pInstance = new Web3();
-        let provider = null
-        if (type === Provider.TYPE.HTTP) {
+        let provider = null;
+        if (type === _TYPE.HTTP) {
             provider = new Web3.providers.HttpProvider(this._connectString)
-        } else if (type === Provider.TYPE.WS) {
+        } else if (type === _TYPE.WS) {
             provider = new Web3.providers.WebsocketProvider(this._connectString)
-        } else if (type === Provider.TYPE.IPC) {
+        } else if (type === _TYPE.IPC) {
             provider = new Web3.providers.IpcProvider(this._connectString, net)
         }
         this._pInstance.setProvider(provider)
+
+
     }
 
     /**
@@ -99,18 +134,18 @@ class Provider {
      */
     async newAccount(pwd) {
         let p = this.eth.personal
-        return await PromiseMethodCall(p.newAccount, p, pwd)
+        return await p.newAccount(pwd);
     }
 
     async unlockAccount(address, password, duration) {
         let p = this.eth.personal
-        await await PromiseMethodCall(p.unlockAccount, p, address, password, duration)
+        await p.unlockAccount(address, password, duration)
         return address
     };
 
     async sign(dataToSign, address, password) {
         let p = this.eth.personal
-        return await PromiseMethodCall(p.sign, p, dataToSign, address, password)
+        return await p.sign(dataToSign, address, password)
     }
 
     // ========================================================== Region Methods : Provider
@@ -122,7 +157,7 @@ class Provider {
             address: address,
             topics: topics
         }
-        return await PromiseMethodCall(this.eth.getPastLogs, this.eth, option)
+        return await this.eth.getPastLogs(option)
     }
 
     /**
@@ -130,11 +165,17 @@ class Provider {
      * @returns {Promise<void>} - block number
      */
     async getBlockNumber() {
-        return await PromiseMethodCall(this.eth.getBlockNumber, this.eth)
+        return await this.eth.getBlockNumber()
     }
 
+    /**
+     *
+     * @param blockNumber
+     * @param {boolean} isDetail  true: txDetail false: txHash
+     * @returns {Promise<*>}
+     */
     async getBlock(blockNumber, isDetail) {
-        return await PromiseMethodCall(this.eth.getBlock, this.eth, blockNumber, isDetail)
+        return await this.eth.getBlock(blockNumber, isDetail)
     }
 
     /**
@@ -143,44 +184,22 @@ class Provider {
      * @returns {Promise<void>}
      */
     async getTransaction(txhash) {
-        return await this.callMethod(this._pInstance.eth.getTransaction, txhash)
+        return await this.eth.getTransaction(txhash)
     }
 
     async getTransactionReceipt(txhash) {
-        return await this.callMethod(this._pInstance.eth.getTransactionReceipt, txhash)
-    }
-
-    // ========================================================== Region Contracts
-
-    /**
-     * Load a contract of the provider, and bind it to specific tag
-     * @param {string} tag - the tag to bind
-     * @param {Object} abi - abi of the contract
-     * @param {string} cAddress - address of the contract
-     */
-    loadContract(tag, abi, cAddress) {
-        this.addContract(tag, new Contractance(this._pInstance, abi).attach(cAddress));
+        return await this.eth.getTransactionReceipt(txhash)
     }
 
     /**
-     * bind a contract to specific tag
-     * @param {string} tag - the tag to bind
-     * @param {Contractance} contract - the contract instance
+     * get eth balance from chain !!! not token
+     * @param address
+     * @returns {Promise<*>}
      */
-    addContract(tag, contract) {
-        this._contractances[tag] = contract;
+    async getBalance(address) {
+        return await this.eth.getBalance(address)
     }
-
-    /**
-     * get a contract instance using specific tag
-     * @param {string} tag - the tag binded
-     * @returns {Contractance} - the contract
-     */
-    getContract(tag) {
-        return this._contractances[tag]
-    }
-
 
 }
 
-module.exports = Provider
+module.exports = Provider;

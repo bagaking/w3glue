@@ -13,7 +13,7 @@ let Promisify = (fn, receiver = null) => {
             if(receiver === null){
                 fn(...args, cb)
             } else {
-                fn.apply(receiver, ...args, cb)
+                fn.call(receiver, ...args, cb)
             }
         })
     }
@@ -25,7 +25,7 @@ let Promisify = (fn, receiver = null) => {
  * @param {...any} args - arguments
  * @returns {Promise<void>}
  */
-let PromiseFunctionCall = function(fn, ...args) {
+let PromiseFunctionCall = (fn, ...args) => {
     return Promisify(fn)(...args)
 }
 
@@ -36,7 +36,7 @@ let PromiseFunctionCall = function(fn, ...args) {
  * @param {...any} args - arguments
  * @returns {Promise<void>}
  */
-let PromiseMethodCall = function(fn, receiver, ...args) {
+let PromiseMethodCall = (fn, receiver, ...args) => {
     return Promisify(fn, receiver)(...args)
 }
 

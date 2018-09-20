@@ -8,6 +8,12 @@
 
 // ================ local lib
 const PromiseMethodCall = require('../util/').promisify.PromiseMethodCall
+const Provider = require('./provider')
+
+
+let contractances = {
+   // __anonymous : []
+}
 
 /**
  * Instance of contract
@@ -15,18 +21,50 @@ const PromiseMethodCall = require('../util/').promisify.PromiseMethodCall
  */
 class Contractance {
 
+
+
+    /**
+     * bind a contract to specific tag
+     * @param {string} tag - the tag to bind
+     * @param {Array} abi - the abi data
+     * @param {constructor} contract constructor
+     * @example
+     * `let c = Contractance.create(tag, abi[, address])[.attach(address)]`
+     */
+    static create(tag, abi, contract){
+        contract = contract || Contractance;
+        contractances[tag] = new contract(abi);
+        return contractances[tag]
+    }
+
+    /**
+     * get a contract instance using specific tag
+     * @param {string} tag - the tag binded
+     * @returns {Contractance} - the contract
+     */
+    static visit(tag) {
+        return contractances[tag]
+    }
+
     /**
      * Create a contract of a provider
      * @see https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html#new-contract
-     * @param {Web3} pInstance - instance of provider
      * @param {Object} abi - contract's abi interface
-     * @param {string} cAddress - contract's address
+     * @param {string} address - contract's address
      */
-    constructor(pInstance, abi) {
+    constructor(abi, address) {
         /** @type {Web3} */
-        this._pInstance = pInstance
+        this._pInstance = null;
+        this._abi = abi;
+        this._address = address;
         /** @type {Eth.Contract} */
-        this._contract = new this._pInstance.eth.Contract(abi)
+        this._contract = null;
+    }
+
+
+    get contract() {
+        this._contract = new this._pInstance.eth.Contract(this._abi, this._address);
+        return this._contract;
     }
 
     /**
@@ -34,7 +72,7 @@ class Contractance {
      * @returns {string}
      */
     get cAddress() {
-        return this._contract.options.address
+        return this._address;
     }
 
     /**
@@ -42,7 +80,7 @@ class Contractance {
      * @returns {string}
      */
     get abi() {
-        return this._contract.options.jsonInterface
+        return this._abi;
     }
 
     /**
@@ -52,7 +90,7 @@ class Contractance {
      * @returns {Contractance}
      */
     attach(cAddress) {
-        this._contract.options.address = cAddress
+        this._address = cAddress;
         return this
     }
 
@@ -65,7 +103,7 @@ class Contractance {
      * @returns {Promise<Contractance>}
      */
     async deploy(bitCode, uAddress, ...args) {
-        let newContractInstance = await this._contract.deploy({
+        this._contract = await this.contract.deploy({
             data: bitCode,
             arguments: args
         }).send({
@@ -90,7 +128,34 @@ class Contractance {
             .catch(function (err) {
                 console.log(err)
             })
-        this._contract = newContractInstance
+        return this
+    }
+
+
+    /**
+     * Select HTTP
+     * @returns {Contractance} this
+     */
+    get $HTTP(){
+        this._pInstance = Provider.$.HTTP.get()._pInstance
+        return this
+    }
+
+    /**
+     * Select WS
+     * @returns {Contractance} this
+     */
+    get $WS(){
+        this._pInstance = Provider.$.WS.get()._pInstance
+        return this
+    }
+
+    /**
+     * Select IPC
+     * @returns {Contractance} this
+     */
+    get $IPC() {
+        this._pInstance = Provider.$.IPC.get()._pInstance
         return this
     }
 
@@ -101,9 +166,9 @@ class Contractance {
      * @returns {any} result
      */
     async callAsync(methodName, ...args) {
-        console.log('call async ' + methodName + ' ' + args)
-        let method = this._contract.methods[methodName](...args)
-        return await PromiseMethodCall(method.call, method)
+        console.log('call async ' + methodName + ' ' + args);
+        let method = this.contract.methods[methodName](...args);
+        return await PromiseMethodCall(method.call, method);
     };
 
     /**
@@ -116,14 +181,14 @@ class Contractance {
      * @returns {Void}
      */
     listen(eventName, fromBlock, filterFromAddr, filterToAddr, callback) {
-        let filter = {}
+        let filter = {};
         if (typeof filterFromAddr !== "undefined") {
             filter._from = filterFromAddr
         }
         if (typeof filterToAddr !== "undefined") {
             filter._to = filterToAddr
         }
-        this._contract.events[eventName]({
+        this.contract.events[eventName]({
             filter: filter,
             fromBlock: fromBlock,
         }, callback)
@@ -133,4 +198,4 @@ class Contractance {
 
 }
 
-module.exports = Contractance
+module.exports = Contractance;

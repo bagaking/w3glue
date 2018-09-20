@@ -40,7 +40,7 @@ class CERC20 extends Contractance {
         return await this.callAsync("totalSupply")
     }
 
-    async balanceOf(tokenOwner) {
+    async balanceOf(addr) {
         return await this.callAsync("balanceOf", addr)
     }
 
