@@ -97,19 +97,23 @@ class Contractance {
     /**
      * Deploy the contract to target network
      * @see https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html#deploy
-     * @param {string} bitCode
+     * @param {string} byteCode
      * @param {string} uAddress - the address of publisher
      * @param {Array} args
      * @returns {Promise<Contractance>}
      */
-    async deploy(bitCode, uAddress, ...args) {
+    async deploy(byteCode, uAddress, ...args) {
+
+        let gas = this._pInstance.eth.estimateGas({data:byteCode});
+        let gasPriceStr = await web3.eth.getGasPrice()
+
         this._contract = await this.contract.deploy({
-            data: bitCode,
+            data: byteCode,
             arguments: args
         }).send({
             from: uAddress,
-            gas: 1500000,
-            gasPrice: '30000000000000'
+            gas: gas * 1.5 | 0,
+            gasPrice: gasPriceStr,//'30000000000000'
         }, function (error, transactionHash) {
             console.log("deploy tx hash:" + transactionHash)
         })
