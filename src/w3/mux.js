@@ -5,6 +5,8 @@ const Web3 = require('web3')     // document: https://web3js.readthedocs.io/en/1
 const net = require('net')
 const Axios = require('axios')   // document: https://www.kancloud.cn/yunye/axios/234845
 
+const Contract = require('./contract')
+
 const __TYPE = {
     HTTP: Symbol("http"),
     WS: Symbol("ws"),
@@ -13,13 +15,13 @@ const __TYPE = {
 
 class Mux {
 
-    constructor({name, urls: {http, ws, ipc}}) {
+    constructor({name, urls: {http, ws, ipc}, contracts}) {
         /** @type {string} */
         this._connectString = connStr;
         /** @type {number} */
         this._rpcSeq = 1
         /** @type {{}} */
-        this._contractances = {}
+        this._contracts = {}
         // ====== create provider
 
         this._providers = []
@@ -67,6 +69,17 @@ class Mux {
 
     get eth() {
         return this.provider.eth
+    }
+
+    // muxMain.$WS.attachContract(tag, abi, address)
+    attachContract(tag, address, {abi}){
+        this._contracts[tag] = Contract.create(this.provider, abi).attach(address);
+        return this._contracts[tag]
+    }
+
+    async deployContract(tag, sender, args, {abi, bytecode}) {
+        this._contracts[tag] = await Contract.create(this.provider, abi).deploy(bytecode, sender, ...args);
+        return this._contracts[tag]
     }
 
     // ========================================================== Region Methods : RPC
