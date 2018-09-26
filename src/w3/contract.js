@@ -9,6 +9,9 @@
 // ================ local lib
 const PromiseMethodCall = require('../util/').promisify.PromiseMethodCall
 
+const symbolContract = Symbol("contract")
+const symbolProvider = Symbol("provider")
+
 
 /**
  * Instance of contract
@@ -21,11 +24,13 @@ class Contract {
      * @param {Web3} provider
      * @param {Array} abiArray - the abi data
      * @param {constructor} contract constructor
+     * @return {Contract}
      * @example
      * `let c = Contract.create(mux, abi)[.attach(address)]`
      */
     static create(provider, abiArray, contract = Contract) {
-        return new contract(network, abiArray)
+        let c = new contract(provider, abiArray)
+        return c
     }
 
     /**
@@ -36,13 +41,30 @@ class Contract {
      * @param {string} address - contract's address
      */
     constructor(provider, abi) {
-        /** @type {Mux} */
-        this.provider = provider;
+        this[symbolProvider] = provider;
 
         this.abi = abi;
 
         /** @type {Eth.Contract} */
-        this.contract = null;
+        this[symbolContract] = new this.provider.eth.Contract(this.abi);
+
+        console.log(`   --- contract created. provider: ${provider}`)
+    }
+
+    /**
+     * get provider
+     * @returns {Web3}
+     */
+    get provider() {
+        return this[symbolProvider]
+    }
+
+    /**
+     * get contract instance
+     * @returns {Web3.Eth.Contract}
+     */
+    get contract() {
+        return this[symbolContract]
     }
 
     /**
@@ -52,7 +74,7 @@ class Contract {
      * @returns {Contract}
      */
     attach(cAddress) {
-        this.contract = new this.provider.eth.Contract(this.abi, this.cAddress);
+        this.contract.options.address = cAddress
         return this
     }
 
@@ -60,33 +82,43 @@ class Contract {
      * Get the contract's address
      * @returns {string}
      */
-    get address(){
-        return this.contract.address
+    get address() {
+        return this.contract.options.address
     }
 
     /**
      * Deploy the contract to target network
      * @see https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html#deploy
      * @param {string} byteCode
-     * @param {string} uAddress - the address of publisher
+     * @param {string} senderAddress - the address of publisher
      * @param {Array} args
      * @returns {Promise<Contractance>}
      */
-    async deploy(byteCode, uAddress, ...args) {
-
-        let gas = this.provider.eth.estimateGas({data: byteCode});
-        let gasPriceStr = await this.provider.eth.getGasPrice()
-
-        this.contract = await this.contract.deploy({
+    async deploy(byteCode, senderAddress, ...args) {
+        console.log(`   ---- start deploy : ${this.contract} ${args}`)
+        let deploy = this.contract.deploy({
             data: byteCode,
             arguments: args
-        }).send({
-            from: uAddress,
+        })
+        console.log(`   ---- start deploy : ${deploy}`)
+        let gas = await new Promise((rsv, rej) => deploy.estimateGas((err, gasE) => {
+            if(err) {
+                console.log(err);
+                rej(err)
+            }else{
+                rsv(gasE)
+            }
+        }));
+        let gasPriceStr = await this.provider.eth.getGasPrice()
+        let transactionInfo = {
+            from: senderAddress,
             gas: gas * 1.5 | 0,
             gasPrice: gasPriceStr,//'30000000000000'
-        }, function (error, transactionHash) {
-            console.log("deploy tx hash:" + transactionHash)
-        }).on('error', function (error) {
+        }
+        console.log(`deploy contract with ${JSON.stringify(transactionInfo)}`)
+
+        let contractInstance = await deploy.send(transactionInfo, (error, transactionHash) => console.log("deploy tx hash:" + transactionHash)
+        ).on('error', function (error) {
             console.error(error);
         }).on('transactionHash', function (transactionHash) {
             console.log("hash:", transactionHash)
@@ -94,9 +126,10 @@ class Contract {
             console.log(receipt.contractAddress); // contains the new contract address
         }).on('confirmation', function (confirmationNumber, receipt) {
             console.log("receipt,", receipt);
-        }).catch(function (err) {
-            console.log(err)
-        })
+        }).catch(console.log)
+
+        console.log(`deployed, instance : ${contractInstance} `)
+        this.contract = contractInstance
         return this
     }
 

@@ -15,10 +15,17 @@ const Axios = require('axios')   // document: https://www.kancloud.cn/yunye/axio
 const PromiseMethodCall = require("../util/promisify").PromiseMethodCall
 
 const _TYPE = {
-    HTTP: 0b001,
-    WS: 0b010,
-    IPC: 0b100
+    HTTP: Symbol("http"),
+    WS: Symbol("ws"),
+    IPC: Symbol("ipc")
 }
+
+/* usage:
+
+  $.HTTP.set("http://127.0.0.1:8545").WS.set("ws://127.0.0.1:8546")
+  $.HTTP.get()
+
+ */
 
 class ProviderSelector {
 
@@ -30,8 +37,8 @@ class ProviderSelector {
         this.cur = _TYPE.HTTP
     }
 
-    set(connectString) {
-        this[this.cur] = new Provider(this.cur, connectString)
+    set(connStr) {
+        this[this.cur] = new Provider(this.cur, connStr)
         return this
     }
 
@@ -53,6 +60,7 @@ class ProviderSelector {
         this.cur = _TYPE.IPC
         return this
     }
+
 }
 let selector = new ProviderSelector()
 
@@ -69,12 +77,12 @@ class Provider {
 
     /**
      * Create a new provider
-     * @param {TYPE(number)} type - provider's type
-     * @param {string} connectString - configuration of the provider's network
+     * @param {TYPE} type - provider's type
+     * @param {string} connStr - configuration of the provider's network
      */
-    constructor(type, connectString) {
+    constructor(type, connStr) {
         /** @type {string} */
-        this._connectString = connectString;
+        this._connectString = connStr;
         /** @type {number} */
         this._rpcSeq = 1
         /** @type {{}} */

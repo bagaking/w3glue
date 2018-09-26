@@ -1,5 +1,6 @@
 "use strict"
 
 module.exports = {
-    "promisify" : require("./promisify")
+    "promisify" : require("./promisify"),
+    "numstr": require("./numstr")
 }

@@ -13,58 +13,64 @@ const __TYPE = {
     IPC: Symbol("ipc")
 }
 
+const symProviders = Symbol("provider")
+
 class Mux {
 
-    constructor({name, urls: {http, ws, ipc}, contracts}) {
-        /** @type {string} */
-        this._connectString = connStr;
+    constructor(name, {urls}) {
         /** @type {number} */
         this._rpcSeq = 1
         /** @type {{}} */
         this._contracts = {}
         // ====== create provider
 
-        this._providers = []
-
-        if (ipc !== undefined && ipc !== null) {
-            this[__TYPE.IPC] = new Web3().setProvider(new Web3.providers.IpcProvider(ipc, net))
+        this[symProviders] = []
+        if (urls.ipc !== undefined && urls.ipc !== null && urls.ipc.length > 0) {
+            this[__TYPE.IPC] = new Web3()
+            this[__TYPE.IPC].setProvider(new Web3.providers.IpcProvider(urls.ipc, net))
+            this[symProviders].push(__TYPE.IPC)
             this._cur = __TYPE.IPC
-            this._providers.push(this[this._cur])
         }
 
-        if (ws !== undefined && ws !== null) {
-            this[__TYPE.WS] = new Web3().setProvider(new Web3.providers.WebsocketProvider(ws))
+        if (urls.ws !== undefined && urls.ws !== null && urls.ws.length > 0) {
+            this[__TYPE.WS] = new Web3()
+            this[__TYPE.WS].setProvider(new Web3.providers.WebsocketProvider(urls.ws))
+            this[symProviders].push(__TYPE.WS)
             this._cur = __TYPE.WS
-            this._providers.push(this[this._cur])
         }
 
-        if (http !== undefined && http !== null) {
-            this[__TYPE.HTTP] = new Web3().setProvider(new Web3.providers.HttpProvider(http))
+        if (urls.http !== undefined && urls.http !== null && urls.http.length > 0) {
+            this[__TYPE.HTTP] = new Web3()
+            this[__TYPE.HTTP].setProvider(new Web3.providers.HttpProvider(urls.http))
+            this[symProviders].push(__TYPE.HTTP)
             this._cur = __TYPE.HTTP
-            this._providers.push(this[this._cur])
         }
 
-        let x = this._cur
-        this.select = (symbol = x) => {
-            this._cur = symbol;
-            return this;
-        }
+        console.log(`     = mux ${name} created = : ${JSON.stringify(this)}`)
+        //console.dir(this)
     }
 
     get $HTTP() {
-        return this.select(__TYPE.HTTP);
+        this._cur = __TYPE.HTTP;
+        return this;
     }
 
     get $WS() {
-        return this.select(__TYPE.WS);
+        this._cur = __TYPE.WS;
+        return this;
     }
 
     get $IPC() {
-        return this.select(__TYPE.HTTP);
+        this._cur = __TYPE.IPC;
+        return this;
     }
 
     get provider() {
         return this[this._cur]
+    }
+
+    get providers() {
+        return this[symProviders]
     }
 
     get eth() {
@@ -72,7 +78,7 @@ class Mux {
     }
 
     // muxMain.$WS.attachContract(tag, abi, address)
-    attachContract(tag, address, {abi}){
+    attachContract(tag, address, {abi}) {
         this._contracts[tag] = Contract.create(this.provider, abi).attach(address);
         return this._contracts[tag]
     }
