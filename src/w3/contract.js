@@ -43,12 +43,10 @@ class Contract {
     constructor(provider, abi) {
         this[symbolProvider] = provider;
 
-        this.abi = abi;
-
         /** @type {Eth.Contract} */
-        this[symbolContract] = new this.provider.eth.Contract(this.abi);
+        this[symbolContract] = new this.provider.eth.Contract(abi);
 
-        console.log(`   --- contract created. provider: ${provider}`)
+        console.log(`   --- contract created. provider: ${provider} ${abi}`)
     }
 
     /**
@@ -87,6 +85,14 @@ class Contract {
     }
 
     /**
+     * Get the contract's abi
+     * @returns {string}
+     */
+    get abi() {
+        return this.contract.options.jsonInterface
+    }
+
+    /**
      * Deploy the contract to target network
      * @see https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html#deploy
      * @param {string} byteCode
@@ -95,21 +101,26 @@ class Contract {
      * @returns {Promise<Contractance>}
      */
     async deploy(byteCode, senderAddress, ...args) {
-        console.log(`   ---- start deploy : ${this.contract} ${args}`)
-        let deploy = this.contract.deploy({
+        let con = new this.provider.eth.Contract(this.abi, null, {
+            from: senderAddress
+        })
+
+        let depInfo = {
             data: byteCode,
             arguments: args
-        })
-        console.log(`   ---- start deploy : ${deploy}`)
-        let gas = await new Promise((rsv, rej) => deploy.estimateGas((err, gasE) => {
-            if(err) {
-                console.log(err);
-                rej(err)
-            }else{
-                rsv(gasE)
-            }
-        }));
-        let gasPriceStr = await this.provider.eth.getGasPrice()
+        }
+
+        console.log(`   ---- start deploy : ${JSON.stringify(depInfo)}`)
+        let gas =1500000
+        // await new Promise((rsv, rej) => deploy.estimateGas((err, gasE) => {
+        //     if(err) {
+        //         console.log(err);
+        //         rej(err)
+        //     }else{
+        //         rsv(gasE)
+        //     }
+        // }));
+        let gasPriceStr = '30000000000000'//await this.provider.eth.getGasPrice()
         let transactionInfo = {
             from: senderAddress,
             gas: gas * 1.5 | 0,
@@ -117,7 +128,10 @@ class Contract {
         }
         console.log(`deploy contract with ${JSON.stringify(transactionInfo)}`)
 
-        let contractInstance = await deploy.send(transactionInfo, (error, transactionHash) => console.log("deploy tx hash:" + transactionHash)
+
+        let deployer = con.deploy(depInfo)
+
+        deployer.send(transactionInfo, (error, transactionHash) => console.log("deploy tx hash:" + transactionHash)
         ).on('error', function (error) {
             console.error(error);
         }).on('transactionHash', function (transactionHash) {
@@ -126,10 +140,12 @@ class Contract {
             console.log(receipt.contractAddress); // contains the new contract address
         }).on('confirmation', function (confirmationNumber, receipt) {
             console.log("receipt,", receipt);
+        }).then((newContractInstance) => {
+            console.log(newContractInstance.options.address); // instance with the new contract address
         }).catch(console.log)
 
-        console.log(`deployed, instance : ${contractInstance} `)
-        this.contract = contractInstance
+        console.log(`deployed, instance : ${con} `)
+        this[symbolContract] = con
         return this
     }
 
