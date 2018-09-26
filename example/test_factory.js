@@ -16,7 +16,7 @@ let chainData = {
                     address : "0x00",
                     deploy : {
                         sender : "0x7EA95C86192FdaB475f7De50257B1a3b55D19Aa0",
-                        args : [ "AB01", "100000000" ]
+                        args : [ "AB01", "AB01", "100000000" ]
                     },
                     contract : "Leblock"
                 },
@@ -24,7 +24,7 @@ let chainData = {
                     address : "0x00",
                     deploy : {
                         sender : "0x7EA95C86192FdaB475f7De50257B1a3b55D19Aa0",
-                        args : [ "AB02", "10000000" ]
+                        args : [ "AB02", "AB01",  "10000000" ]
                     },
                     contract : "Leblock"
                 },
