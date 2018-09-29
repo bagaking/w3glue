@@ -41,6 +41,6 @@ let ret = (function() {
         // cConf.address = c.address
         // console.log(`deployed : ${JSON.stringify(cConf)}\n with args: ${args} \n`)
 
-        mux.$HTTP.getCon
+        console.log(mux.$HTTP.getContract("Name"))
     }
 })()
