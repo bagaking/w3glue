@@ -83,8 +83,10 @@ class Mux {
         return this._contracts[tag]
     }
 
-    async deployContract(tag, sender, args, {abi, bytecode}) {
-        this._contracts[tag] = await Contract.create(this.provider, abi).deploy(bytecode, sender, ...args);
+    async deployContract(tag, sender, args, {abi, bytecode}, extraGasLimit = 1) {
+        let contract = await Contract.create(this.provider, abi)
+        contract["extraGasLimit"] = extraGasLimit
+        this._contracts[tag] = contract.deploy(bytecode, sender, ...args);
         return this._contracts[tag]
     }
 

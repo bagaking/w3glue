@@ -122,9 +122,10 @@ class Contract {
             }
         })) || 1500000;
         let gasPriceStr = await this.provider.eth.getGasPrice()
+        let extraGasLimit = this["extraGasLimit"] || 0 //trick
         let transactionInfo = {
             from: senderAddress,
-            gas: gas * 1.5 | 0,
+            gas: (gas * 1.1) + extraGasLimit | 0,
             gasPrice: gasPriceStr,//'30000000000000'
         }
         console.log(`deploy contract with ${JSON.stringify(transactionInfo)}`)

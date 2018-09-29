@@ -14,22 +14,23 @@ const fs =  require("fs")
  * @param {...string} args - a Array of arguments
  * @return {Promise<Contract>} address - the deployed address
  */
-async function deployOnce(host, path, sender, ... args){
-    let mux = new Mux("once", {
-        urls: {
-            http: host,
-            ws: "",
-            ipc: ""
-        }
-    })
+
+async function deployOnceWithExtraGasLimit(host, path, sender, extraGasLimit, ... args){
+    let mux = new Mux("once", { urls: { http: host }})
     let boxData = JSON.parse(fs.readFileSync(path), 'utf8')
-    await mux.$HTTP.deployContract("___", sender, args, boxData)
+    await mux.$HTTP.deployContract("___", sender, args, boxData, extraGasLimit)
     let contract = mux.$HTTP.getContract("___")
     return contract
 }
 
+async function deployOnce(host, path, sender, ... args){
+    return await deployOnceWithExtraGasLimit(host, path, sender, 0, ... args)
+}
+
+
 module.exports = {
     deployOnce,
+    deployOnceWithExtraGasLimit,
     Contract,
     Mux,
     MuxFactory,
