@@ -159,8 +159,18 @@ class Contract {
      */
     async callAsync(methodName, ...args) {
         console.log('call async ' + methodName + ' ' + args);
-        let method = this.contract.methods[methodName](...args);
+        let method = getMethod(methodName, ...args)
         return await PromiseMethodCall(method.call, method);
+    }
+
+    /**
+     * get web3 contract's method
+     * @param {string} methodName - name of the method
+     * @param {...any} args - arguments
+     * @returns {*} result
+     */
+    getMethod(methodName, ...args){
+        return this.contract.methods[methodName](...args)
     }
 
     /**
