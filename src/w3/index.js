@@ -23,7 +23,7 @@ async function deployOnce(host, path, sender, ... args){
         }
     })
     let boxData = JSON.parse(fs.readFileSync(path), 'utf8')
-    await mux.$HTTP.deployContract("___", "0x373478c2FDaF8D28A91e0c4C2D31EC79596E872E", args, boxData)
+    await mux.$HTTP.deployContract("___", sender, args, boxData)
     let contract = mux.$HTTP.getContract("___")
     return contract
 }
