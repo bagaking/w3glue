@@ -88,6 +88,10 @@ class Mux {
         return this._contracts[tag]
     }
 
+    getContract(tag){
+        return this._contracts[tag]
+    }
+
     // ========================================================== Region Methods : RPC
 
     /**
