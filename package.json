@@ -1,6 +1,6 @@
 {
   "name": "w3glue",
-  "version": "0.0.1-Beta.2",
+  "version": "0.0.1-Beta.3",
   "description": "a liberary which provide the glue-protocal to communicate with geth nodes.",
   "main": "src/glue.js",
   "repository": "git@github.com:bagaking/w3glue.git",
