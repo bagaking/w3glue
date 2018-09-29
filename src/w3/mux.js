@@ -20,7 +20,7 @@ class Mux {
     constructor(name, {urls}) {
         /** @type {number} */
         this._rpcSeq = 1
-        /** @type {{}} */
+        /** @type {{Object.<string:Contract>}} */
         this._contracts = {}
         // ====== create provider
 
@@ -88,6 +88,11 @@ class Mux {
         return this._contracts[tag]
     }
 
+    /**
+     * get a contract
+     * @param tag
+     * @return {Contract}
+     */
     getContract(tag){
         return this._contracts[tag]
     }
