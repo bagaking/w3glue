@@ -130,7 +130,7 @@ class Contract {
         console.log(`deploy contract with ${JSON.stringify(transactionInfo)}`)
 
 
-        con = await deployer.send(transactionInfo, (error, transactionHash) => console.log("deploy tx hash:" + transactionHash).catch(console.log))
+        con = await deployer.send(transactionInfo, (error, transactionHash) => console.log("deploy tx hash:" + transactionHash)).catch(console.log)
         // .on('error', function (error) {
         //         //     console.error(error);
         //         // }).on('transactionHash', function (transactionHash) {
@@ -159,7 +159,7 @@ class Contract {
      */
     async callAsync(methodName, ...args) {
         console.log('call async ' + methodName + ' ' + args);
-        let method = getMethod(methodName, ...args)
+        let method = this.getMethod(methodName, ...args)
         return await PromiseMethodCall(method.call, method);
     }
 
