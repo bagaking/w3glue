@@ -8,7 +8,7 @@ let cConf = {
     address: "0x00",
     deploy: {
         sender: "0x373478c2FDaF8D28A91e0c4C2D31EC79596E872E",
-        args: ["AB01", "100000000"]
+        args: ["AB01", "ABlock01", "100000000"]
     },
     contract: "Leblock"
 }

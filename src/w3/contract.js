@@ -131,7 +131,7 @@ class Contract {
 
         let deployer = con.deploy(depInfo)
 
-        deployer.send(transactionInfo, (error, transactionHash) => console.log("deploy tx hash:" + transactionHash)
+        con = await deployer.send(transactionInfo, (error, transactionHash) => console.log("deploy tx hash:" + transactionHash)
         ).on('error', function (error) {
             console.error(error);
         }).on('transactionHash', function (transactionHash) {
@@ -140,9 +140,11 @@ class Contract {
             console.log(receipt.contractAddress); // contains the new contract address
         }).on('confirmation', function (confirmationNumber, receipt) {
             console.log("receipt,", receipt);
-        }).then((newContractInstance) => {
-            console.log(newContractInstance.options.address); // instance with the new contract address
         }).catch(console.log)
+
+        //     .then((newContractInstance) => {
+        //     console.log(newContractInstance.options.address); // instance with the new contract address
+        // })
 
         console.log(`deployed, instance : ${con} `)
         this[symbolContract] = con
