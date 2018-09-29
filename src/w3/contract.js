@@ -46,7 +46,7 @@ class Contract {
         /** @type {Eth.Contract} */
         this[symbolContract] = new this.provider.eth.Contract(abi);
 
-        console.log(`   --- contract created. provider: ${provider} ${abi}`)
+        console.log(`   --- contract created. provider: ${provider}`)
     }
 
     /**
@@ -110,17 +110,18 @@ class Contract {
             arguments: args
         }
 
-        console.log(`   ---- start deploy : ${JSON.stringify(depInfo)}`)
-        let gas =1500000
-        // await new Promise((rsv, rej) => deploy.estimateGas((err, gasE) => {
-        //     if(err) {
-        //         console.log(err);
-        //         rej(err)
-        //     }else{
-        //         rsv(gasE)
-        //     }
-        // }));
-        let gasPriceStr = '30000000000000'//await this.provider.eth.getGasPrice()
+        let deployer = con.deploy(depInfo)
+
+        console.log(`   ---- start deploy`)
+        let gas = await new Promise((rsv, rej) => deployer.estimateGas((err, gasE) => {
+            if(err) {
+                console.log(err);
+                rej(err)
+            }else{
+                rsv(gasE)
+            }
+        })) || 1500000;
+        let gasPriceStr = await this.provider.eth.getGasPrice()
         let transactionInfo = {
             from: senderAddress,
             gas: gas * 1.5 | 0,
@@ -129,24 +130,23 @@ class Contract {
         console.log(`deploy contract with ${JSON.stringify(transactionInfo)}`)
 
 
-        let deployer = con.deploy(depInfo)
-
-        con = await deployer.send(transactionInfo, (error, transactionHash) => console.log("deploy tx hash:" + transactionHash)
-        ).on('error', function (error) {
-            console.error(error);
-        }).on('transactionHash', function (transactionHash) {
-            console.log("hash:", transactionHash)
-        }).on('receipt', function (receipt) {
-            console.log(receipt.contractAddress); // contains the new contract address
-        }).on('confirmation', function (confirmationNumber, receipt) {
-            console.log("receipt,", receipt);
-        }).catch(console.log)
+        con = await deployer.send(transactionInfo, (error, transactionHash) => console.log("deploy tx hash:" + transactionHash).catch(console.log))
+        // .on('error', function (error) {
+        //         //     console.error(error);
+        //         // }).on('transactionHash', function (transactionHash) {
+        //         //     console.log("hash:", transactionHash)
+        //         // }).on('receipt', function (receipt) {
+        //         //     console.log(receipt.contractAddress); // contains the new contract address
+        //         // }).on('confirmation', function (confirmationNumber, receipt) {
+        //         //     console.log("receipt received!");
+        //         //     //console.log("receipt,", receipt);
+        //         // })
 
         //     .then((newContractInstance) => {
         //     console.log(newContractInstance.options.address); // instance with the new contract address
         // })
 
-        console.log(`deployed, instance : ${con} `)
+        console.log(`deployed.`)
         this[symbolContract] = con
         return this
     }
