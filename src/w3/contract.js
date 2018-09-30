@@ -93,6 +93,23 @@ class Contract {
     }
 
     /**
+     * Get the contract's events
+     * @param {string} eventName
+     * @param {number|string} fromBlock
+     * @param {number|string} toBlock
+     * @return {Promise<Array>} events
+     */
+    async events(eventName, fromBlock = 0, toBlock = 'latest', filter = undefined) {
+        let options = {
+            fromBlock,
+            toBlock
+        } // web3's bug: if there no options, nothing will return
+        if (!!filter) option.filter = filter
+        return await this.contract.getPastEvents(eventName, options)
+
+    }
+
+    /**
      * Deploy the contract to target network
      * @see https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html#deploy
      * @param {string} byteCode
@@ -114,10 +131,10 @@ class Contract {
 
         console.log(`   ---- start deploy`)
         let gas = await new Promise((rsv, rej) => deployer.estimateGas((err, gasE) => {
-            if(err) {
+            if (err) {
                 console.log(err);
                 rej(err)
-            }else{
+            } else {
                 rsv(gasE)
             }
         })) || 1500000;
@@ -170,7 +187,7 @@ class Contract {
      * @param {...any} args - arguments
      * @returns {*} result
      */
-    getMethod(methodName, ...args){
+    getMethod(methodName, ...args) {
         return this.contract.methods[methodName](...args)
     }
 
