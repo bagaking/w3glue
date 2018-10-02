@@ -4,6 +4,7 @@
 const _ = require('lodash');
 const Web3 = require('web3')     // document: https://web3js.readthedocs.io/en/1.0/index.html
 const net = require('net')
+const log = require("../util/log")
 
 const Contract = require('./contract')
 
@@ -63,7 +64,7 @@ class Mux {
             this._cur = __TYPE.HTTP
         }
 
-        console.log(`     = mux ${name} created = : ${JSON.stringify(this)}`)
+        log.info(`     = mux ${name} created = : ${JSON.stringify(this)}`)
         //console.dir(this)
     }
 

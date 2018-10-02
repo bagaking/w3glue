@@ -1,14 +1,21 @@
 const chalk = require("chalk")
 
+const log = console.log
+const error = console.error
+
+
 module.exports = {
-    verb: (...args) => console.log(chalk.gray(...args)),
-    log: (...args) => console.log(chalk.white(...args)),
-    success: (...args) => console.log(chalk.cyan(...args)),
-    failed: (...args) => console.log(chalk.magenta(...args)),
-    info: (...args) => console.log(chalk.blue(...args)),
-    warn: (...args) => console.log(chalk.yellow(...args)),
-    err: (...args) => console.error(chalk.red(...args)),
-    fatal: (...args) => console.error(chalk.bold.redBright(...args)),
+    verb: (...args) => log(chalk.gray(...args)),
+    log: (...args) => log(chalk.white(...args)),
+
+    success: (...args) => log(chalk.underline.cyan(...args)),
+    failed: (...args) => log(chalk.underline.magenta(...args)),
+    info: (...args) => log(chalk.italic.blue(...args)),
+
+    warn: (...args) => log(chalk.yellow(...args)),
+
+    err: (...args) => error(chalk.red(...args)),
+    fatal: (...args) => error(chalk.underline.bold.redBright(...args)),
     get usage(){
         this.verb("this","is","verb")
         this.log("this","is","log")
