@@ -17,7 +17,12 @@ const symProviders = Symbol("provider")
 
 class Mux {
 
-    constructor(name, {urls}) {
+    /**
+     * Create Mux
+     * @param {string} name
+     * @param {string|Object.<string,string>}conf
+     */
+    constructor(name, conf) {
         /** @type {number} */
         this._rpcSeq = 1
         /** @type {{Object.<string:Contract>}} */
@@ -25,6 +30,12 @@ class Mux {
         // ====== create provider
 
         this[symProviders] = []
+        let urls = null
+        if (typeof conf === "string") {
+            urls = {http: conf}
+        } else {
+            urls = conf.urls
+        }
         if (urls.ipc !== undefined && urls.ipc !== null && urls.ipc.length > 0) {
             this[__TYPE.IPC] = new Web3()
             this[__TYPE.IPC].setProvider(new Web3.providers.IpcProvider(urls.ipc, net))
@@ -95,7 +106,7 @@ class Mux {
      * @param tag
      * @return {Contract}
      */
-    getContract(tag){
+    getContract(tag) {
         return this._contracts[tag]
     }
 
