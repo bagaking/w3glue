@@ -19,7 +19,7 @@ const symbolProvider = Symbol("provider")
  * Instance of contract
  * @see https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html
  */
-class Contract {
+class aContract {
 
     /**
      * bind a contract to specific tag
