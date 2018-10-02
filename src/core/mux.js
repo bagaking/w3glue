@@ -20,7 +20,7 @@ class Mux {
     /**
      * Create Mux
      * @param {string} name
-     * @param {string|Object.<string,string>}conf
+     * @param {string|Object.<urls:string,Object>}conf
      */
     constructor(name, conf) {
         /** @type {number} */

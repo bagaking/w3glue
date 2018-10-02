@@ -13,6 +13,7 @@
   "dependencies": {
     "axios": "^0.18.0",
     "babel-runtime": "^6.26.0",
+    "chalk": "^2.4.1",
     "lodash": "^4.17.11",
     "net": "^1.0.2",
     "ramda": "^0.25.0",
