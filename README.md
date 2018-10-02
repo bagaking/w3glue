@@ -25,7 +25,7 @@ then check them at ./docs/gen/
 #### launch
 
 ```js
-const {Mux} = require("w3glue").w3
+const {Mux} = require("w3glue")
 let mux = new Mux("main", "http://127.0.0.1:7545")
 ```
 
