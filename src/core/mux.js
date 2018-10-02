@@ -1,6 +1,7 @@
 "using strict"
 
 // ================ packages
+const _ = require('lodash');
 const Web3 = require('web3')     // document: https://web3js.readthedocs.io/en/1.0/index.html
 const net = require('net')
 
@@ -30,8 +31,14 @@ class Mux {
 
         this[symProviders] = []
         let urls = null
-        if (typeof conf === "string") {
-            urls = {http: conf}
+        if (_.isString(conf)) {
+            if(conf.startsWith("http://")) {
+                urls = {http: conf}
+            } else if(conf.startsWith("ws://")) {
+                urls = {ws: conf}
+            } else{
+                urls = {ipc: conf}
+            }
         } else {
             urls = conf.urls
         }
