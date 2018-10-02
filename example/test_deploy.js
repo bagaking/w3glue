@@ -1,6 +1,6 @@
 "using strict"
 
-const Mux = require("../src/w3/mux")
+const Mux = require("../src/core/mux")
 const fs =  require("fs")
 
 let buildPath = `${__dirname}/contracts/`

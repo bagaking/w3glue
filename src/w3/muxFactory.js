@@ -1,6 +1,6 @@
 "using strict"
 
-const Mux = require("./mux")
+const Mux = require("../core/mux")
 const R = require("ramda")
 const fs = require("fs")
 /*
