@@ -5,7 +5,7 @@ const Web3 = require('web3')     // document: https://web3js.readthedocs.io/en/1
 const net = require('net')
 const Axios = require('axios')   // document: https://www.kancloud.cn/yunye/axios/234845
 
-const Contract = require('./contract')
+const Contract = require('../core/contract')
 
 const __TYPE = {
     HTTP: Symbol("http"),

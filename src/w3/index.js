@@ -1,6 +1,6 @@
 "use strict"
 
-const Contract = require("./contract")
+const Contract = require("../core/contract")
 const Mux = require("./mux")
 const MuxFactory = require("./muxFactory")
 
@@ -39,7 +39,6 @@ async function deployOnce(host, path, sender, ... args){
 module.exports = {
     deployOnce,
     deployOnceWithExtraGasLimit,
-    Contract,
     Mux,
     MuxFactory,
 }

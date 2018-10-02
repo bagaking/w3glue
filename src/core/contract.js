@@ -7,10 +7,12 @@
 "use strict"
 
 // ================ local lib
-const PromiseMethodCall = require('../util/').promisify.PromiseMethodCall
+const PromiseMethodCall = require('../util/index').promisify.PromiseMethodCall
+const CBoard = require("./board")
 
 const symbolContract = Symbol("contract")
 const symbolProvider = Symbol("provider")
+
 
 
 /**
@@ -37,7 +39,7 @@ class Contract {
      * Create a contract of a provider
      * @see https://web3js.readthedocs.io/en/1.0/web3-eth-contract.html#new-contract
      * @param {Web3} provider
-     * @param {Object} abi - contract's abi interface
+     * @param {Array<Object>} abi - contract's abi interface
      * @param {string} address - contract's address
      */
     constructor(provider, abi) {
@@ -64,6 +66,11 @@ class Contract {
     get contract() {
         return this[symbolContract]
     }
+
+    toBoard(contractStr){
+        return new CBoard(contractStr, this.address, this)
+    }
+
 
     /**
      * Attach the contract to an c-address
