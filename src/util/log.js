@@ -5,7 +5,7 @@ const error = console.error
 
 
 module.exports = {
-    verb: (...args) => log(chalk.gray(...args)),
+    verbose: (...args) => log(chalk.gray(...args)),
     log: (...args) => log(chalk.white(...args)),
 
     success: (...args) => log(chalk.underline.cyan(...args)),
@@ -17,7 +17,7 @@ module.exports = {
     err: (...args) => error(chalk.red(...args)),
     fatal: (...args) => error(chalk.underline.bold.redBright(...args)),
     get usage(){
-        this.verb("this","is","verb")
+        this.verbose("this","is","verbose")
         this.log("this","is","log")
         this.success("this","is","success")
         this.failed("this","is","failed")

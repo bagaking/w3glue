@@ -4,19 +4,33 @@ let symMyContract = Symbol("symMyContract")
 
 class CBoard {
 
+    /**
+     *
+     * @param {string} contractStr - Require : the contract string,
+     * @param {string} address - Must : the contracts address
+     * @param {Contract} contract - Optional : contract that already exist
+     */
     constructor(contractStr, address, contract) {
         this.contractStr = contractStr
         this.address = address
 
-        /** @type {tContract} */
+        /** @type {Contract} */
         this[symMyContract] = contract
     }
 
+    /**
+     * get the glue contract
+     * @return {Contract}
+     */
     get contract() {
         return this[symMyContract]
     }
 
-    get toObject() {
+    /**
+     * convet to plain object
+     * @return {{contractStr: string, address: string}}
+     */
+    get toPlainObject() {
         return {
             contractStr: this.contractStr,
             address: this.address
@@ -34,13 +48,14 @@ class CBoard {
     }
 
     /**
-     *
+     * create a glue contract
      * @param {function(contractStr:string, address:string)} fnContractLoader - the fn receives two args contractStr and address, and then return the contract
-     * @return {Promise<void>}
+     * @return {Promise<Contract>}
      */
     async makeContract(fnContractLoader){
         let call = fnContractLoader(contractStr, address)
         this[symMyContract] = call instanceof Promise ? await call : call
+        return this[symMyContract]
     }
 
 

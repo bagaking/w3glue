@@ -9,6 +9,7 @@
 // ================ local lib
 const PromiseMethodCall = require('../util/index').promisify.PromiseMethodCall
 const CBoard = require("./board")
+const log = require("../util/log")
 
 const symbolContract = Symbol("contract")
 const symbolProvider = Symbol("provider")
@@ -136,7 +137,7 @@ class Contract {
 
         let deployer = con.deploy(depInfo)
 
-        console.log(`   ---- start deploy`)
+        log.info(`   ---- start deploy`)
         let gas = await new Promise((rsv, rej) => deployer.estimateGas((err, gasE) => {
             if (err) {
                 console.log(err);
@@ -152,7 +153,7 @@ class Contract {
             gas: (gas * 1.1) + extraGasLimit | 0,
             gasPrice: gasPriceStr,//'30000000000000'
         }
-        console.log(`deploy contract with ${JSON.stringify(transactionInfo)}`)
+        log.verbose(`deploy contract with ${JSON.stringify(transactionInfo)}`)
 
 
         con = await deployer.send(transactionInfo, (error, transactionHash) => console.log("deploy tx hash:" + transactionHash)).catch(console.log)
@@ -171,7 +172,7 @@ class Contract {
         //     console.log(newContractInstance.options.address); // instance with the new contract address
         // })
 
-        console.log(`deployed.`)
+        log.info(`deployed.`)
         this[symbolContract] = con
         return this
     }
