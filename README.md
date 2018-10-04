@@ -2,17 +2,14 @@
 
 ## init
 
-there three way to init the project
-
-run on of these command:
+run one of these command:
 
 - `npm i`
-- `cnpm i`
 - `yarn install`
 
 ## doc gen
 
-the repo using gulp to generate document.
+the repo using gulp to generate documents.
 
 run `gulp doc` or `gulp`
 
@@ -88,5 +85,5 @@ mux.$WS.provider...
 
 by the way, The phase you choose at the end will be retained.
 This means that once you have selected a phase, the API after that will call the mux in that phase
-HTTP is the default of mux, then WS is the default phase when HTTP does not exist, and finally IPC
+$HTTP is the default phase of mux, then WS is the default phase when HTTP does not exist, and finally IPC
 If you using online string to create mux, it must be http
