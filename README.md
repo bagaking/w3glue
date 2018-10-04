@@ -56,6 +56,15 @@ myContract.getMethod(methodName, ...args)
 
 ### Board
 
+board is the structure used to record deployment information of contracts.
+it is usually represented as the following structure.
+```json
+{
+    "contractStr": "V1/ERC20",
+    "address": "0x0F217cDBbaf75B9b4c5dc1008A5cc5918e672d3d"
+}
+```
+
 there is a easy way to create board from existed glue-contract
 ```js
 myContract.toBoard(contractStr)
