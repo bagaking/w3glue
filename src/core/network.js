@@ -128,13 +128,27 @@ class Network {
         return await this.eth.getBlockTransactionCount("pending")
     }
 
+
+    /**
+     * get transaction info
+     * @param txhash
+     * @returns {Promise<void>}
+     */
+    async getTransaction(txhash) {
+        return await this.eth.getTransaction(txhash)
+    }
+
+    async getTransactionReceipt(txhash) {
+        return await this.eth.getTransactionReceipt(txhash)
+    }
+
     // ========================================================== Region Methods : Provider
 
 
     async getPastLogs(address, fromBlock, toBlock, topics) {
         let option = {
-            fromBlock: this.web3.utils.toHex(fromBlock),
-            toBlock: this.web3.utils.toHex(toBlock),
+            fromBlock: web3.utils.toHex(fromBlock),
+            toBlock: web3.utils.toHex(toBlock),
             address: address,
             topics: topics
         }
@@ -159,18 +173,6 @@ class Network {
         return await this.eth.getBlock(blockNumber, isDetail)
     }
 
-    /**
-     * get transaction info
-     * @param txhash
-     * @returns {Promise<void>}
-     */
-    async getTransaction(txhash) {
-        return await this.eth.getTransaction(txhash)
-    }
-
-    async getTransactionReceipt(txhash) {
-        return await this.eth.getTransactionReceipt(txhash)
-    }
 
     /**
      * get eth balance from chain !!! not token
