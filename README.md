@@ -33,6 +33,8 @@ mux.deployContract(tag, sender, args, {abi, bytecode}, extraGasLimit = 1) // {ab
 mux.attachContract(tag, address, {abi})
 ```
 
+you don't need create contract for each provider. you just need create is once, and mux will load them automatic while calling.
+
 #### web3
 
 ```js
