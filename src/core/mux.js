@@ -6,6 +6,7 @@ const log = require("../util/log")
 const {__TYPE, Network} = require("./network")
 
 const symHosts = Symbol("hostsConf")
+const symProviders = Symbol("symProviders")
 
 class Mux extends Network {
 
@@ -43,22 +44,30 @@ class Mux extends Network {
         this[symHosts] = hosts
 
         log.info(`     = mux ${name} created = : ${JSON.stringify(this)}`)
+
+        this[symProviders][lastType] = this
+
     }
 
     get hosts() {
         return this[symHosts]
     }
 
+    _getOrCreateNetwork(type){
+        if(!!this[symProviders][type]) return;
+        this.spawn(type, this.hosts[type])
+    }
+
     get $HTTP() {
-        return this.spawn(__TYPE.HTTP, this.hosts[__TYPE.HTTP])
+        return this._getOrCreateNetwork(__TYPE.HTTP)
     }
 
     get $WS() {
-        return this.spawn(__TYPE.WS, this.hosts[__TYPE.WS])
+        return this._getOrCreateNetwork(__TYPE.WS)
     }
 
     get $IPC() {
-        return this.spawn(__TYPE.IPC, this.hosts[__TYPE.IPC])
+        return this._getOrCreateNetwork(__TYPE.IPC)
     }
 
 
