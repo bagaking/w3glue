@@ -29,14 +29,18 @@ function createProvider(type, host) {
     return web3Inst
 }
 
+const symMyProvider = Symbol("provider")
+
+const symMyPrev = Symbol("prev")
+
 
 class Network {
 
     constructor(type, host) {
         if (!_.isString(host)) throw new Error("host error: host address is not exist")
-        this._provider = createProvider(type, host)
-        this.prev = null
-        this.newNum = 0
+        this[symMyProvider] = createProvider(type, host)
+        this[symMyPrev] = null
+        this._newNum = 0
 
         /** @type {{Object.<string:Contract>}} */
         this._contracts = {}
@@ -44,13 +48,13 @@ class Network {
 
     spawn(type, host) {
         let child = new Network(type, host)
-        child.prev = this
-        this.newNum++
+        this._newNum++
+        child[symMyPrev] = this
         return child
     }
 
     get provider() {
-        return this._provider
+        return this[symMyProvider]
     }
 
     get eth() {
@@ -71,15 +75,15 @@ class Network {
     }
 
     /**
-     * get a contract
+     * ensure and get a contract
      * @param tag
      * @return {Contract}
      */
     getContract(tag) {
         let result = this._contracts[tag]
-        if (!_.isObject(result) && !!this.prev) {
+        if (!result && !!this.prev) {
             result = this.prev.getContract(tag)
-            if (!!_.isObject(result)) {
+            if (!!result) {
                 this.attachContract(tag, result.address, {abi: result.abi})
             }
         }
@@ -109,7 +113,10 @@ class Network {
         return await p.sign(dataToSign, address, password)
     }
 
+
+
     // ========================================================== Region Methods : Provider
+
 
     async getPastLogs(address, fromBlock, toBlock, topics) {
         let option = {
