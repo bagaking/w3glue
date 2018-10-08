@@ -81,8 +81,8 @@ class Network {
      */
     getContract(tag) {
         let result = this._contracts[tag]
-        if (!result && !!this.prev) {
-            result = this.prev.getContract(tag)
+        if (!result && !!this[symMyPrev]) {
+            result = this[symMyPrev].getContract(tag)
             if (!!result) {
                 this.attachContract(tag, result.address, {abi: result.abi})
             }
@@ -114,6 +114,19 @@ class Network {
     }
 
 
+    // ========================================================== Region Methods : Transactions
+
+    async getTransactionCount(address) {
+        return await this.eth.getTransactionCount(address, 'pending');
+    }
+
+    async getTransactionSuccessCount(address) {
+        return await this.eth.getTransactionCount(address);
+    }
+
+    async getAllPendingTransactionCount(address) {
+        return await this.eth.getBlockTransactionCount("pending")
+    }
 
     // ========================================================== Region Methods : Provider
 
