@@ -23,7 +23,7 @@ then check them at ./docs/gen/
 
 ```js
 const {Mux} = require("w3glue")
-let mux = new Mux("main", "http://127.0.0.1:7545")
+let mux = new Mux("main", "http://127.0.0.1:7545") //or let mux = new Mux("main", "ws://127.0.0.1:7546")
 ```
 
 #### deploy or attach
