@@ -2,21 +2,12 @@
 
 // ================ packages
 const _ = require('lodash');
-const Web3 = require('web3')     // document: https://web3js.readthedocs.io/en/1.0/index.html
-const net = require('net')
 const log = require("../util/log")
+const {__TYPE, Network} = require("./network")
 
-const Contract = require('./contract')
+const symHosts = Symbol("hostsConf")
 
-const __TYPE = {
-    HTTP: Symbol("http"),
-    WS: Symbol("ws"),
-    IPC: Symbol("ipc")
-}
-
-const symProviders = Symbol("provider")
-
-class Mux {
+class Mux extends Network {
 
     /**
      * Create Mux
@@ -24,98 +15,52 @@ class Mux {
      * @param {string|Object.<urls:string,Object>}conf
      */
     constructor(name, conf) {
-        /** @type {number} */
-        this._rpcSeq = 1
-        /** @type {{Object.<string:Contract>}} */
-        this._contracts = {}
-        // ====== create provider
-
-        this[symProviders] = []
         let urls = null
         if (_.isString(conf)) {
-            if(conf.startsWith("http://")) {
+            if (conf.startsWith("http://")) {
                 urls = {http: conf}
-            } else if(conf.startsWith("ws://")) {
+            } else if (conf.startsWith("ws://")) {
                 urls = {ws: conf}
-            } else{
+            } else {
                 urls = {ipc: conf}
             }
         } else {
             urls = conf.urls
         }
-        if (urls.ipc !== undefined && urls.ipc !== null && urls.ipc.length > 0) {
-            this[__TYPE.IPC] = new Web3()
-            this[__TYPE.IPC].setProvider(new Web3.providers.IpcProvider(urls.ipc, net))
-            this[symProviders].push(__TYPE.IPC)
-            this._cur = __TYPE.IPC
+
+        let hosts = {}
+        let lastType = null
+        let tryCreateProvider = (typeName, type) => {
+            hosts[type] = urls[typeName]
+            lastType = type
         }
 
-        if (urls.ws !== undefined && urls.ws !== null && urls.ws.length > 0) {
-            this[__TYPE.WS] = new Web3()
-            this[__TYPE.WS].setProvider(new Web3.providers.WebsocketProvider(urls.ws))
-            this[symProviders].push(__TYPE.WS)
-            this._cur = __TYPE.WS
-        }
+        tryCreateProvider("ipc", __TYPE.IPC)
+        tryCreateProvider("ws", __TYPE.WS)
+        tryCreateProvider("http", __TYPE.HTTP)
+        super(lastType, hosts[lastType])
 
-        if (urls.http !== undefined && urls.http !== null && urls.http.length > 0) {
-            this[__TYPE.HTTP] = new Web3()
-            this[__TYPE.HTTP].setProvider(new Web3.providers.HttpProvider(urls.http))
-            this[symProviders].push(__TYPE.HTTP)
-            this._cur = __TYPE.HTTP
-        }
+        this[symHosts] = hosts
 
         log.info(`     = mux ${name} created = : ${JSON.stringify(this)}`)
-        //console.dir(this)
+    }
+
+    get hosts() {
+        return this[symHosts]
     }
 
     get $HTTP() {
-        this._cur = __TYPE.HTTP;
-        return this;
+        return this.spawn(__TYPE.HTTP, this.hosts[__TYPE.HTTP])
     }
 
     get $WS() {
-        this._cur = __TYPE.WS;
-        return this;
+        return this.spawn(__TYPE.WS, this.hosts[__TYPE.WS])
     }
 
     get $IPC() {
-        this._cur = __TYPE.IPC;
-        return this;
+        return this.spawn(__TYPE.IPC, this.hosts[__TYPE.IPC])
     }
 
-    get provider() {
-        return this[this._cur]
-    }
-
-    get providers() {
-        return this[symProviders]
-    }
-
-    get eth() {
-        return this.provider.eth
-    }
-
-    // muxMain.$WS.attachContract(tag, abi, address)
-    attachContract(tag, address, {abi}) {
-        this._contracts[tag] = Contract.create(this.provider, abi).attach(address);
-        return this._contracts[tag]
-    }
-
-    async deployContract(tag, sender, args, {abi, bytecode}, extraGasLimit = 1) {
-        let contract = await Contract.create(this.provider, abi)
-        contract["extraGasLimit"] = extraGasLimit
-        this._contracts[tag] = contract.deploy(bytecode, sender, ...args);
-        return this._contracts[tag]
-    }
-
-    /**
-     * get a contract
-     * @param tag
-     * @return {Contract}
-     */
-    getContract(tag) {
-        return this._contracts[tag]
-    }
 
     // ========================================================== Region Methods : RPC
 
