@@ -145,7 +145,6 @@ class Network {
 
     // ========================================================== Region Methods : Provider
 
-
     async getPastLogs(address, fromBlock, toBlock, topics) {
         let option = {
             fromBlock: web3.utils.toHex(fromBlock),
@@ -182,6 +181,24 @@ class Network {
      */
     async getBalance(address) {
         return await this.eth.getBalance(address)
+    }
+
+    // ========================================================== Region Methods : Provider
+
+    /**
+     * send transaction, the address 'from' must be unlocked
+     * @param {string} from
+     * @param {string} to
+     * @param {string|number} amount
+     * @return {Promise<*>}
+     */
+    async sendTransaction(from, to, amount) {
+        let ret = await this.eth.sendTransaction({
+            from: from,
+            to: to,
+            value: amount
+        })
+        return ret
     }
 }
 

@@ -14,8 +14,8 @@ const log = require("../util/log")
 
 const symbolContract = Symbol("contract")
 const symbolProvider = Symbol("provider")
-
-
+const symEvent = Symbol("event")
+const symFunction = Symbol("function")
 
 /**
  * Instance of contract
@@ -50,6 +50,8 @@ class Contract {
         /** @type {Eth.Contract} */
         this[symbolContract] = new this.provider.eth.Contract(abi);
 
+        this._deconstruction()
+
         console.log(`   --- contract created. provider: ${provider}`)
     }
 
@@ -69,7 +71,7 @@ class Contract {
         return this[symbolContract]
     }
 
-    toBoard(contractStr){
+    toBoard(contractStr) {
         return new CBoard(contractStr, this.address, this)
     }
 
@@ -123,7 +125,7 @@ class Contract {
      * @param {string} byteCode
      * @param {string} senderAddress - the address of publisher
      * @param {Array} args
-     * @returns {Promise<Contractance>}
+     * @returns {Promise<Contract>}
      */
     async deploy(byteCode, senderAddress, ...args) {
         let con = new this.provider.eth.Contract(this.abi, null, {
@@ -188,6 +190,7 @@ class Contract {
         let method = this.getMethod(methodName, ...args)
         return await PromiseMethodCall(method.call, method);
     }
+
     //todo: transfer
 
     /**
@@ -223,6 +226,28 @@ class Contract {
         }, callback)
     }
 
+    _deconstruction() {
+        this[symEvent] = {}
+        this[symFunction] = {}
+        _.forEach(this.abi, method => {
+            switch (method.type) {
+                case "event":
+                    this[symEvent][method.name] = method
+                    break;
+                case "function":
+                    this[symFunction][method.name] = method
+                    break;
+            }
+        })
+    }
+
+    get events() {
+        return this[symEvent]
+    }
+
+    get functions() {
+        return this[symFunction]
+    }
 
 }
 
