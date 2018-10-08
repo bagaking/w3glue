@@ -46,6 +46,7 @@ class Network {
         let child = new Network(type, host)
         child.prev = this
         this.newNum++
+        return child
     }
 
     get provider() {
