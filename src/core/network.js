@@ -2,6 +2,7 @@
 
 const Web3 = require('web3')     // document: https://web3js.readthedocs.io/en/1.0/index.html
 const net = require('net')
+const _ = require('lodash')
 
 const Contract = require('./contract')
 

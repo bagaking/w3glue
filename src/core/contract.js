@@ -9,6 +9,7 @@
 // ================ local lib
 const PromiseMethodCall = require('../util/index').promisify.PromiseMethodCall
 const CBoard = require("./board")
+const _ = require("lodash")
 const log = require("../util/log")
 
 const symbolContract = Symbol("contract")
@@ -114,7 +115,6 @@ class Contract {
         } // web3's bug: if there no options, nothing will return
         if (!!filter) option.filter = filter
         return await this.contract.getPastEvents(eventName, options)
-
     }
 
     /**
@@ -188,6 +188,7 @@ class Contract {
         let method = this.getMethod(methodName, ...args)
         return await PromiseMethodCall(method.call, method);
     }
+    //todo: transfer
 
     /**
      * get web3 contract's method
@@ -222,7 +223,6 @@ class Contract {
         }, callback)
     }
 
-    //todo: transfer
 
 }
 
