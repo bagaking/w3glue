@@ -45,6 +45,7 @@ class Mux extends Network {
 
         log.info(`     = mux ${name} created = : ${JSON.stringify(this)}`)
 
+        this[symProviders] = {}
         this[symProviders][lastType] = this
 
     }

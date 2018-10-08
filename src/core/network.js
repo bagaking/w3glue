@@ -71,7 +71,7 @@ class Network {
     async deployContract(tag, sender, args, {abi, bytecode}, extraGasLimit = 1) {
         let contract = await Contract.create(this.provider, abi)
         contract["extraGasLimit"] = extraGasLimit
-        this._contracts[tag] = contract.deploy(bytecode, sender, ...args);
+        this._contracts[tag] = await contract.deploy(bytecode, sender, ...args);
         return this._contracts[tag]
     }
 
