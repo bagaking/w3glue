@@ -84,7 +84,7 @@ class Network {
         if (!result && !!this[symMyPrev]) {
             result = this[symMyPrev].getContract(tag)
             if (!!result) {
-                this.attachContract(tag, result.address, {abi: result.abi})
+                result = this.attachContract(tag, result.address, {abi: result.abi})
             }
         }
         return result
