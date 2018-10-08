@@ -43,7 +43,7 @@ class Network {
     }
 
     spawn(type, host) {
-        let child = new this(type, host)
+        let child = new Network(type, host)
         child.prev = this
         this.newNum++
     }
