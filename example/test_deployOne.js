@@ -18,6 +18,8 @@ let exe = async function() {
     await mux.$HTTP.deployContract("AB01", "0x373478c2FDaF8D28A91e0c4C2D31EC79596E872E", ["AB01", "ABlock01", "100000000"], boxData)
     let contract = mux.$HTTP.getContract("AB01")
     console.log("===== " + contract.address)
+    console.dir(contract._events)
+    console.dir(contract._functions)
 }
 
 exe()
