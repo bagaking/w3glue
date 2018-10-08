@@ -53,9 +53,12 @@ class Mux extends Network {
         return this[symHosts]
     }
 
-    _getOrCreateNetwork(type){
-        if(!!this[symProviders][type]) return;
-        this.spawn(type, this.hosts[type])
+    _getOrCreateNetwork(type) {
+        let result = this[symProviders][type]
+        if (!result) {
+            result = this[symProviders][type] = this.spawn(type, this.hosts[type])
+        }
+        return result
     }
 
     get $HTTP() {
