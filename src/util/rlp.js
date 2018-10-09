@@ -1,4 +1,6 @@
 const _ = require("lodash")
+const {Buffer} = require('buffer')
+const log = require("./log")
 
 const MAX_LENGTH = 16 ** 8
 const MAX_IN_PLACE_LENGTH_NUM = 55
@@ -21,10 +23,10 @@ const MAX_IN_PLACE_LENGTH_NUM = 55
 /**
  * find out if the string's length is a even number
  * @param {string} str
- * @return {boolean}
+ * @return {string}
  */
-function isEvenStr(str) {
-    return !!(str.length & 1)
+function padToEven(str) {
+    return !(str.length & 1) ? str : "0" + str;
 }
 
 /**
@@ -32,9 +34,43 @@ function isEvenStr(str) {
  * @param {string|number} v
  * @return {string}
  */
-function toEvenHex(v) {
+function numToEvenHex(v) {
     let str = _.isNumber(v) ? v.toString(16) : v
-    return isEvenStr(str) ? str : "0" + str;
+    return padToEven(str);
+}
+
+function strToEvenHex(str) {
+    let hex = ""
+    for (let i in str){
+        hex += padToEven(str.charCodeAt(i).toString(16))
+    }
+    return hex
+};
+
+/**
+ *
+ * @param v
+ * @return {string}
+ */
+function parseItem(v) {
+    let ret = ''
+    if (typeof v === 'string') {
+        if (isRlpEncodedStr(v)) {
+            ret = padToEven(v.slice(2))
+        } else {
+            ret = strToEvenHex(v)
+        }
+    } else if (typeof v === 'number') {
+        if(v >= Number.MAX_SAFE_INTEGER) throw new Error(`number ${v} exceeded Number.MAX_SAFE_INTEGER ${Number.MAX_SAFE_INTEGER}, using string instead `)
+        ret = v === 0 ? "" : numToEvenHex(v) // special parse operation when str equals to "0"  (number 0,  boolean 'false')
+    } else if (typeof v === 'boolean') {
+        ret = parseItem(v ? 1 : 0)
+    } else if (v === null || v === undefined) {
+        ret = v
+    } else {
+        throw new Error('invalid type')
+    }
+    return ret
 }
 
 /**
@@ -43,7 +79,7 @@ function toEvenHex(v) {
  * @return {boolean}
  */
 function isRlpEncodedStr(str) {
-    return _.isString(str) && str.startsWith("0x") && isEvenStr(str) //todo: pay attention to this '0x', it means the string is already encoded
+    return _.isString(str) && str.startsWith("0x") //todo: pay attention to this '0x', it means the string is already encoded
 }
 
 /**
@@ -52,7 +88,7 @@ function isRlpEncodedStr(str) {
  * @desc
  *
  * a control word should follow the rules at
- * [https://github.com/ethereum/wiki/wiki/RLP](https://github.com/ethereum/wiki/wiki/RLP)
+ * {@link https://github.com/ethereum/wiki/wiki/RLP}
  *
  * | type                       | head
  * | ----                       | --------
@@ -66,29 +102,38 @@ function isRlpEncodedStr(str) {
  * @param typeOffset - for array it is 0xc0(192), and for raw string it is 0x80(128)
  * @return {string}
  */
-function controlWord(dataLength, typeOffset) {
+function encodeLength(dataLength, typeOffset) {
     if (dataLength <= MAX_IN_PLACE_LENGTH_NUM) {
-        return toEvenHex(typeOffset + dataLength)
+        log.verbose("0.", typeOffset, dataLength)
+        return numToEvenHex(typeOffset + dataLength)
     } else if (dataLength < MAX_LENGTH) {
-        return toEvenHex(typeOffset + MAX_IN_PLACE_LENGTH_NUM + (1 + Math.log(dataLength) | 0)) + toEvenHex(dataLength);
+        let hexLength = numToEvenHex(dataLength)
+        log.verbose("1.", typeOffset, dataLength, hexLength)
+        let controlWord = numToEvenHex(typeOffset + MAX_IN_PLACE_LENGTH_NUM + (hexLength.length / 2))
+        return controlWord + hexLength
     } else {
-        throw new Error("content size exceeded")
+        throw new Error(`content size ${dataLength} exceeded`)
     }
 }
 
 function compile(node) {
+    let result = null
     if (node instanceof Array) {
         let hexNode = _.join(_.map(node, compile), '')
-        let cWord = controlWord(hexNode.length / 2, 0xc0)
-        return cWord + hexNode
+        let cWord = encodeLength(hexNode.length / 2, 0xc0)
+        result = cWord + hexNode
+        // log.verbose("array", "node:", node, "cWord:", cWord, "hexNode:", hexNode, "result:", result)
     } else {
-        let hexLeaf = isRlpEncodedStr(node) ? node.slice(2) : toEvenHex(node)
-        if (hexLeaf.length === 1 && hexLeaf.charCodeAt(0) < 0x80) {
-            return hexLeaf
+        let leaf = parseItem(node)
+        if (leaf.length === 2 && leaf < "80") {
+            // log.verbose("leaf < 0x80", "node:", node, "leaf:", leaf, typeof leaf)
+            result = leaf
         } else {
-            return controlWord(hexLeaf.length / 2, 0x80) + hexLeaf
+            // log.verbose("leaf > 0x80", "node:", node, "leaf:", leaf, typeof leaf)
+            result = encodeLength(leaf.length / 2, 0x80) + leaf
         }
     }
+    return result
 }
 
 function encode(node) {
@@ -96,12 +141,23 @@ function encode(node) {
 }
 
 
+function decode(hexStr) {
+    if (!isRlpEncodedStr(hexStr)) {
+        throw new Error("rlp decode error: the input string is not the rlp format.")
+    }
 
+    let cur = 2
+
+
+}
+
+console.log(encode("dog"))
 
 module.exports = {
-    toEvenHex,
+    numToEvenHex,
     isRlpEncodedStr,
     encodeLength,
     compile,
     encode,
+    decode
 };
