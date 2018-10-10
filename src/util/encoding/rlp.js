@@ -61,7 +61,7 @@ function _encodeArr(arr) {
  * @param {number} typeOffset - for array it is 0xc0(192), and for raw string it is 0x80(128)
  * @return {Buffer}
  */
-function _appendHead(typeOffset, buf){
+function _appendHead(typeOffset, buf) {
     let lenBuf = buf.length
     if (lenBuf < 56) {
         // Concat with Buffer is about two times fast than Uint8Array
@@ -83,11 +83,11 @@ function _appendHead(typeOffset, buf){
  * @return {Buffer}
  */
 function encode(item) {
-    if(_.isArray(item)) {
+    if (_.isArray(item)) {
         return _encodeArr(item)
-    } else if(_.isBuffer(item) || _.isString(item) || item instanceof Uint8Array) {
+    } else if (_.isBuffer(item) || _.isString(item) || item instanceof Uint8Array) {
         return _encodeBuf(item)
-    } else{
+    } else {
         throw new Error("type error: item must be a string (ie. byte array)")
     }
 }
@@ -96,11 +96,37 @@ function encode(item) {
  * decode an buffer
  * @param {Buffer} buf - encoded buffer
  */
-function decode(buf) {
-    if(!_.isBuffer(buf)) {
+function decode(buf, outExtra) {
+    if (!_.isBuffer(buf)) {
         throw new Error("type error: the input of decode must be a buffer")
     }
 
+    let cur = 0
+    let result = []
+
+    const slice = len => {
+        let ret = buf.slice(cur, cur += len)
+        if(cur >= buf.length) throw new Error('decode error: out of range when slice')
+        return ret
+    }
+
+    const length = cw => {
+        let len = cw % 64
+        return len < 56 ? len : slice(len)
+    }
+
+    while (cur < buf.length) {
+        let cw = buf[cur++]
+        if (cw < 0x80) { // 0 ~ 0x7f = 128
+            result.push(cw);
+        } else if (cw < 0xc0) { // 0x7f ~ 0xb7 = 56, 0xb8 ~ 0xbf = 8
+            result.push(slice(length(cw)))
+        } else { // 0xc0 ~ 0xf7 = 56, 0xf7 ~ 0xff = 8
+            //todo: parse arr
+        }
+    }
+
+    return result
 }
 
 module.exports = {
