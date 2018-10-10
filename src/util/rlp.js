@@ -1,6 +1,9 @@
+'use strict'
+
 const _ = require("lodash")
 const {Buffer} = require('buffer')
 const log = require("./log")
+const Web3 = require("web3")
 
 const MAX_LENGTH = 16 ** 8
 const MAX_IN_PLACE_LENGTH_NUM = 55
@@ -41,36 +44,38 @@ function numToEvenHex(v) {
 
 function strToEvenHex(str) {
     let hex = ""
-    for (let i in str){
+    for (let i in str) {
         hex += padToEven(str.charCodeAt(i).toString(16))
     }
     return hex
 };
 
 /**
- *
+ * the converter between raw input and encode procedure
  * @param v
  * @return {string}
  */
 function parseItem(v) {
-    let ret = ''
-    if (typeof v === 'string') {
-        if (isRlpEncodedStr(v)) {
-            ret = padToEven(v.slice(2))
-        } else {
-            ret = strToEvenHex(v)
-        }
-    } else if (typeof v === 'number') {
-        if(v >= Number.MAX_SAFE_INTEGER) throw new Error(`number ${v} exceeded Number.MAX_SAFE_INTEGER ${Number.MAX_SAFE_INTEGER}, using string instead `)
-        ret = v === 0 ? "" : numToEvenHex(v) // special parse operation when str equals to "0"  (number 0,  boolean 'false')
-    } else if (typeof v === 'boolean') {
-        ret = parseItem(v ? 1 : 0)
-    } else if (v === null || v === undefined) {
-        ret = v
-    } else {
-        throw new Error('invalid type')
-    }
-    return ret
+    return padToEven(Web3.utils.toHex(v).slice(2).replace(/^0+$/, '')) // this method supports bigNumber
+
+    // let ret = ''
+    // if (typeof v === 'string') {
+    //     if (isRlpEncodedStr(v)) {
+    //         ret = padToEven(v.slice(2))
+    //     } else {
+    //         ret = strToEvenHex(v)
+    //     }
+    // } else if (typeof v === 'number') {
+    //     if(v >= Number.MAX_SAFE_INTEGER) throw new Error(`number ${v} exceeded Number.MAX_SAFE_INTEGER ${Number.MAX_SAFE_INTEGER}, using string instead `)
+    //     ret = v === 0 ? "" : numToEvenHex(v) // special parse operation when str equals to "0"  (number 0,  boolean 'false')
+    // } else if (typeof v === 'boolean') {
+    //     ret = parseItem(v ? 1 : 0)
+    // } else if (v === null || v === undefined) {
+    //     ret = v
+    // } else { // todo: more data type should be supported, such as bigInt, ByteArray(num), Object etc.
+    //     throw new Error('invalid type')
+    // }
+    // return ret
 }
 
 /**
@@ -122,15 +127,15 @@ function compile(node) {
         let hexNode = _.join(_.map(node, compile), '')
         let cWord = encodeLength(hexNode.length / 2, 0xc0)
         result = cWord + hexNode
-        // log.verbose("array", "node:", node, "cWord:", cWord, "hexNode:", hexNode, "result:", result)
+        log.verbose("array", "node:", node, "cWord:", cWord, "hexNode:", hexNode, "result:", result)
     } else {
         let leaf = parseItem(node)
         if (leaf.length === 2 && leaf < "80") {
-            // log.verbose("leaf < 0x80", "node:", node, "leaf:", leaf, typeof leaf)
+            log.verbose("leaf < 0x80", "node:", node, typeof node, "leaf:", leaf, typeof leaf)
             result = leaf
         } else {
-            // log.verbose("leaf > 0x80", "node:", node, "leaf:", leaf, typeof leaf)
-            result = encodeLength(leaf.length / 2, 0x80) + leaf
+            log.verbose("leaf > 0x80", "node:", node, typeof node, "leaf:", leaf, typeof leaf)
+            result = encodeLength(leaf.length / 2 | 0, 0x80) + leaf
         }
     }
     return result
@@ -145,13 +150,9 @@ function decode(hexStr) {
     if (!isRlpEncodedStr(hexStr)) {
         throw new Error("rlp decode error: the input string is not the rlp format.")
     }
-
-    let cur = 2
-
-
 }
 
-console.log(encode("dog"))
+
 
 module.exports = {
     numToEvenHex,
