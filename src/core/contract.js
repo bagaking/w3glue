@@ -4,7 +4,7 @@
  * @version 0.1
  */
 
-"use strict"
+'use strict'
 
 // ================ local lib
 const PromiseMethodCall = require('../util/index').promisify.PromiseMethodCall

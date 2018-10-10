@@ -1,4 +1,4 @@
-"using strict"
+'use strict'
 
 // ================ packages
 const _ = require('lodash');
