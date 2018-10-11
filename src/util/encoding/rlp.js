@@ -25,7 +25,7 @@ const {numOrStrToEvenHex} = require('./hex')
 
 /**
  * encode a item that is 'A string (ie. byte array)'
- * @param {Buffer|Uint8Array|string} buf
+ * @param {Buffer} buf
  * @private
  */
 function _encodeBuf(buf) {
@@ -79,16 +79,25 @@ function _appendHead(typeOffset, buf) {
     }
 }
 
+//
+function _defaultFnPretend(item) {
+    if(_.isBuffer(item) || _.isString(item) || item instanceof Uint8Array){
+        return Buffer.from(item)
+    }
+    throw new Error('rle._defaultFnPretend : invalid type')
+}
+
 /**
  * encode an item
- * @param {Array|Buffer|Uint8Array|string} item
+ * @param {*} item - with default fnPretendItem, item should be a Buffer|Uint8Array|string
+ * @param {function} fnPretendItem
  * @return {Buffer}
  */
-function encode(item) {
+function encode(item, fnPretendItem = _defaultFnPretend) {
     if (_.isArray(item)) {
         return _encodeArr(item)
-    } else if (_.isBuffer(item) || _.isString(item) || item instanceof Uint8Array) {
-        return _encodeBuf(item)
+    } else if (_.isFunction(fnPretendItem)){
+        return _encodeBuf(fnPretendItem(item))
     } else {
         throw new Error("type error: item must be a string (ie. byte array)")
     }
@@ -161,7 +170,7 @@ function decode(buf) {
     // only the first element is legal
     let results = _decodeArr(buf)
 
-    if(results.length > 1){
+    if (results.length > 1) {
         throw new Error("rlp : only single item is enabled")
     }
 
