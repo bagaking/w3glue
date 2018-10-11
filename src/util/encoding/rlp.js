@@ -71,6 +71,8 @@ function _appendHead(typeOffset, buf) {
         // but in js, the largest accurate number is Number.MAX_SAFE_INTEGER
         let hexStrForLen = numOrStrToEvenHex(lenBuf)
         let head = numOrStrToEvenHex(typeOffset + 55 + (hexStrForLen.length / 2))
+        // pay attention to the 'hex', when decode using buf.toString('hex')
+        // when input < 256, its equal to Buffer.from([input]), but it shouldn't happen, that's why we use this api
         return Buffer.concat([Buffer.from(head + hexStrForLen, 'hex'), buf])
     } else {
         throw new Error(`content size ${lenBuf} exceeded`)
@@ -93,40 +95,77 @@ function encode(item) {
 }
 
 /**
- * decode an buffer
- * @param {Buffer} buf - encoded buffer
+ * decode <arrItems>
+ * @desc arr buffer : (<cw>[lenOfLen]<len><arrItems>)
+ * @param {Buffer} buf - is considered buffered <arrItems>
  */
-function decode(buf, outExtra) {
+function _decodeArr(buf) {
     if (!_.isBuffer(buf)) {
         throw new Error("type error: the input of decode must be a buffer")
     }
 
     let cur = 0
-    let result = []
 
-    const slice = len => {
+    /**
+     * @param {number} len
+     * @return {Buffer} seg
+     */
+    const take = len => {
         let ret = buf.slice(cur, cur += len)
-        if(cur >= buf.length) throw new Error('decode error: out of range when slice')
+        if (cur >= buf.length) throw new Error('decode error: out of range when slice');
         return ret
     }
 
-    const length = cw => {
-        let len = cw % 64
-        return len < 56 ? len : slice(len)
+    /**
+     * @param {Buffer} buf
+     * @return {number} len
+     */
+    const buf2len = buf => {
+        let hexLen = buf.toString('hex')
+        if (hexLen.startsWith('00')) throw new Error('invalid RLP: extra zeros');
+        return parseInt(hexLen, 16)
     }
+
+    /**
+     * @param {number} cw - first number of buffer
+     * @return {number} len
+     */
+    const cw2len = cw => {
+        let len = cw % 64
+        return len < 56 ? len : buf2len(take(len * 2)) // or !!((len ^ 56) >> 3) :LOL
+    }
+
+    // In this implementation, the input 'buf' is considered <arrItems>
+    // Therefore, the return value must be a arr
+    let result = []
 
     while (cur < buf.length) {
         let cw = buf[cur++]
         if (cw < 0x80) { // 0 ~ 0x7f = 128
             result.push(cw);
-        } else if (cw < 0xc0) { // 0x7f ~ 0xb7 = 56, 0xb8 ~ 0xbf = 8
-            result.push(slice(length(cw)))
-        } else { // 0xc0 ~ 0xf7 = 56, 0xf7 ~ 0xff = 8
-            //todo: parse arr
+        } else if (cw < 0xc0) { // buf item, 0x7f ~ 0xb7 = 56, 0xb8 ~ 0xbf = 8
+            result.push(take(cw2len(cw)))
+        } else { // arr item, 0xc0 ~ 0xf7 = 56, 0xf7 ~ 0xff = 8
+            result.push(decode(take(cw2len(cw))))
         }
     }
 
     return result
+}
+
+/**
+ * decode an buffer
+ * @param {Buffer} buf - encoded buffer
+ */
+function decode(buf) {
+    // only the first element is legal
+    let results = _decodeArr(buf)
+
+    if(results.length > 1){
+        throw new Error("rlp : only single item is enabled")
+    }
+
+    return results[0]
 }
 
 module.exports = {
