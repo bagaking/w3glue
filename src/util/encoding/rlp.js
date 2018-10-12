@@ -71,9 +71,10 @@ function _appendHead(typeOffset, buf) {
         // there are up to 8 Byte using to present the length, thus the max length of data is 2 ** (8 * 8)
         // but in js, the largest accurate number is Number.MAX_SAFE_INTEGER
         let hexStrForLen = numOrStrToEvenHex(lenBuf)
-        let head = numOrStrToEvenHex(typeOffset + 55 + (hexStrForLen.length / 2))
+        let head = numOrStrToEvenHex(typeOffset + 55 + (hexStrForLen.length / 2)) // thus 56 ==> 1
         // pay attention to the 'hex', when decode using buf.toString('hex')
         // when input < 256, its equal to Buffer.from([input]), but it shouldn't happen, that's why we use this api
+        log.info(head, hexStrForLen)
         return Buffer.concat([Buffer.from(head + hexStrForLen, 'hex'), buf])
     } else {
         throw new Error(`content size ${lenBuf} exceeded`)
@@ -105,6 +106,18 @@ function encode(item, fnPretendItem = _defaultFnPretend) {
 }
 
 /**
+ * convert buf to int, using 'length' scheme
+ * @param {Buffer} buf
+ * @return {number} len
+ */
+function buf2Len(buf) {
+    let hexLen = buf.toString('hex')
+    log.info(buf, hexLen)
+    if (hexLen.startsWith('00')) throw new Error('invalid RLP: extra zeros');
+    return parseInt(hexLen, 16)
+}
+
+/**
  * the get length method of
  * @param buf
  * @param fnPretendItem
@@ -119,21 +132,11 @@ function decLen(buf, fnPretendItem = _defaultFnPretend) {
     } else {
         let len = cw % 64
         if (len < 0) throw new Error('decode error: empty input');
-        let end = 1 + len * 2
+        let end = 1 + (len - 55) // when dec, there no need to double char, cuz the 'hex'
         if (len >= buf.length) throw new Error('decode error: out of range');
-        log.verbose(buf, cw, len, end)
-        return 1 + len + (len < 56 ? 0 : _buf2len(buf.slice(1, end)))
+        log.verbose(buf, cw, len, end, buf2Len(buf.slice(1, end)))
+        return 1 + (len < 56 ? len : (len - 55) + buf2Len(buf.slice(1, end)))
     }
-}
-
-/**
- * @param {Buffer} buf
- * @return {number} len
- */
-function buf2Len(buf) {
-    let hexLen = buf.toString('hex')
-    if (hexLen.startsWith('00')) throw new Error('invalid RLP: extra zeros');
-    return parseInt(hexLen, 16)
 }
 
 /**
@@ -168,7 +171,7 @@ function _decodeArr(buf) {
      */
     const _cw2len = cw => {
         let len = cw % 64
-        return len < 56 ? len : buf2Len(_take(len * 2)) // or !!((len ^ 56) >> 3) :LOL
+        return len < 56 ? len : buf2Len(_take((len - 55))) // or !!((len ^ 56) >> 3) :LOL
     }
 
     // In this implementation, the input 'buf' is considered <arrItems>
