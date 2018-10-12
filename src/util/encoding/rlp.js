@@ -22,6 +22,7 @@
 const _ = require("lodash")
 const {Buffer} = require('safe-buffer')
 const {numOrStrToEvenHex} = require('./hex')
+const log = require("../log")
 
 /**
  * encode a item that is 'A string (ie. byte array)'
@@ -30,7 +31,7 @@ const {numOrStrToEvenHex} = require('./hex')
  */
 function _encodeBuf(buf) {
     buf = Buffer.from(buf)
-    return buf.length === 1 && buf[0] < 128 ? input : _appendHead(0x80, buf)
+    return buf.length === 1 && buf[0] < 128 ? buf : _appendHead(0x80, buf)
 }
 
 /**
@@ -81,7 +82,7 @@ function _appendHead(typeOffset, buf) {
 
 //
 function _defaultFnPretend(item) {
-    if(_.isBuffer(item) || _.isString(item) || item instanceof Uint8Array){
+    if (_.isBuffer(item) || _.isString(item) || item instanceof Uint8Array) {
         return Buffer.from(item)
     }
     throw new Error('rle._defaultFnPretend : invalid type')
@@ -90,17 +91,49 @@ function _defaultFnPretend(item) {
 /**
  * encode an item
  * @param {*} item - with default fnPretendItem, item should be a Buffer|Uint8Array|string
- * @param {function} fnPretendItem
+ * @param {function(*) : Buffer} fnPretendItem
  * @return {Buffer}
  */
 function encode(item, fnPretendItem = _defaultFnPretend) {
     if (_.isArray(item)) {
         return _encodeArr(item)
-    } else if (_.isFunction(fnPretendItem)){
+    } else if (_.isFunction(fnPretendItem)) {
         return _encodeBuf(fnPretendItem(item))
     } else {
-        throw new Error("type error: item must be a string (ie. byte array)")
+        throw new Error("type error: item is not available (ie. byte array)")
     }
+}
+
+/**
+ * the get length method of
+ * @param buf
+ * @param fnPretendItem
+ * @return {number} total length :
+ */
+function decLen(buf, fnPretendItem = _defaultFnPretend) {
+    if (!fnPretendItem) throw new Error('decode error: fnPretendItem must exist');
+    buf = fnPretendItem(buf)
+    let cw = buf[0]
+    if (cw < 0x80) { // 0 ~ 0x7f = 128
+        return 1
+    } else {
+        let len = cw % 64
+        if (len < 0) throw new Error('decode error: empty input');
+        let end = 1 + len * 2
+        if (len >= buf.length) throw new Error('decode error: out of range');
+        log.verbose(buf, cw, len, end)
+        return 1 + len + (len < 56 ? 0 : _buf2len(buf.slice(1, end)))
+    }
+}
+
+/**
+ * @param {Buffer} buf
+ * @return {number} len
+ */
+function buf2Len(buf) {
+    let hexLen = buf.toString('hex')
+    if (hexLen.startsWith('00')) throw new Error('invalid RLP: extra zeros');
+    return parseInt(hexLen, 16)
 }
 
 /**
@@ -109,6 +142,7 @@ function encode(item, fnPretendItem = _defaultFnPretend) {
  * @param {Buffer} buf - is considered buffered <arrItems>
  */
 function _decodeArr(buf) {
+    log.verbose(`decode: ${buf.toString('hex')}`)
     if (!_.isBuffer(buf)) {
         throw new Error("type error: the input of decode must be a buffer")
     }
@@ -119,29 +153,22 @@ function _decodeArr(buf) {
      * @param {number} len
      * @return {Buffer} seg
      */
-    const take = len => {
+    const _take = len => {
         let ret = buf.slice(cur, cur += len)
-        if (cur >= buf.length) throw new Error('decode error: out of range when slice');
+        if (cur >= buf.length) {
+            log.err(`decode error: ${cur} out of range when slice ${buf.toString('hex')}(${buf.length})`)
+            throw new Error('decode error: out of range when slice');
+        }
         return ret
-    }
-
-    /**
-     * @param {Buffer} buf
-     * @return {number} len
-     */
-    const buf2len = buf => {
-        let hexLen = buf.toString('hex')
-        if (hexLen.startsWith('00')) throw new Error('invalid RLP: extra zeros');
-        return parseInt(hexLen, 16)
     }
 
     /**
      * @param {number} cw - first number of buffer
      * @return {number} len
      */
-    const cw2len = cw => {
+    const _cw2len = cw => {
         let len = cw % 64
-        return len < 56 ? len : buf2len(take(len * 2)) // or !!((len ^ 56) >> 3) :LOL
+        return len < 56 ? len : buf2Len(_take(len * 2)) // or !!((len ^ 56) >> 3) :LOL
     }
 
     // In this implementation, the input 'buf' is considered <arrItems>
@@ -152,11 +179,15 @@ function _decodeArr(buf) {
         let cw = buf[cur++]
         if (cw < 0x80) { // 0 ~ 0x7f = 128
             result.push(cw);
-        } else if (cw < 0xc0) { // buf item, 0x7f ~ 0xb7 = 56, 0xb8 ~ 0xbf = 8
-            result.push(take(cw2len(cw)))
-        } else { // arr item, 0xc0 ~ 0xf7 = 56, 0xf7 ~ 0xff = 8
-            result.push(decode(take(cw2len(cw))))
+        } else {
+            let len = _cw2len(cw)
+            let seg = _take(len)
+            log.verbose("d:", cw.toString(16), len)
+            // buf item: 0x7f ~ 0xb7 = 56, 0xb8 ~ 0xbf = 8
+            // arr item, 0xc0 ~ 0xf7 = 56, 0xf7 ~ 0xff = 8
+            result.push(cw < 0xc0 ? seg : decode(seg))
         }
+
     }
 
     return result
@@ -178,6 +209,8 @@ function decode(buf) {
 }
 
 module.exports = {
+    decLen,
+    buf2Len,
     encode,
     decode
 }
