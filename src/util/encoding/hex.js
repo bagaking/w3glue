@@ -9,6 +9,8 @@ const _ = require('lodash')
  */
 const numOrStrToEvenHex = (v) => v.toString(16).padStart(2, '0');
 
+const isPrefixedHexStr = hex => _.isString(hex) && /^(-)?0x[0-9a-f]*$/i.test(hex);
+
 const isHexStr = hex => _.isString(hex) && /^(-0x|0x)?[0-9a-f]*$/i.test(hex);
 
 const utf8StrToHex = utf8Str => // before encoding, 0 at start or end should be removed
@@ -41,7 +43,9 @@ function toHex(value) {
 }
 
 module.exports = {
-    numOrStrToEvenHex
+    numOrStrToEvenHex,
+    isPrefixedHexStr,
+    isHexStr
 }
 
 
