@@ -19,10 +19,11 @@ function _toBuffer(v) {
 }
 
 function encode(input) {
-    rlp.encode(input, _toBuffer)
+    return rlp.encode(input, _toBuffer)
 }
 
 function decode(input) {
+    return rlp.decode(_toBuffer(input))
     //todo: need implement
 }
 
