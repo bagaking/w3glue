@@ -2,12 +2,15 @@
 
 const _ = require('lodash')
 
+
+const padToEven = (str, fillStr = '0') => str.length % 2 ? fillStr + str : str;
+
 /**
  * pad to even hex string
  * @param {string|number} v
  * @return {string}
  */
-const numOrStrToEvenHex = (v) => v.toString(16).padStart(2, '0');
+const numOrStrToEvenHex = v => padToEven(v.toString(16));
 
 const isPrefixedHexStr = hex => _.isString(hex) && /^(-)?0x[0-9a-f]*$/i.test(hex);
 
@@ -15,7 +18,7 @@ const isHexStr = hex => _.isString(hex) && /^(-0x|0x)?[0-9a-f]*$/i.test(hex);
 
 const utf8StrToHex = utf8Str => // before encoding, 0 at start or end should be removed
     _.map(utf8Str.replace(/^(?:\u0000)*/g, '').replace(/(?:\u0000)*$/g, ''),
-        (s, i, o) => o.charCodeAt(i).toString(16).padStart(2))
+        (s, i, o) => numOrStrToEvenHex(o.charCodeAt(i)))
 
 
 function toHex(value) {
