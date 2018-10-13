@@ -18,7 +18,10 @@ function _toBuffer(v) {
     throw new Error(`ethrlp._toBuffer invalid type ${v} of type ${typeof v}`)
 }
 
-
+/**
+ * @param input
+ * @return {Buffer}
+ */
 function encode(input) {
     return rlp.encode(input, _toBuffer)
 }
