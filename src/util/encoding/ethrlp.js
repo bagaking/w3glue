@@ -15,14 +15,19 @@ function _toBuffer(v) {
 
     if (v.toArray) return Buffer.from(v.toArray()); // converts a BN to a Buffer
 
-    throw new Error('ethrlp._toBuffer invalid type')
+    throw new Error(`ethrlp._toBuffer invalid type ${v} of type ${typeof v}`)
 }
+
 
 function encode(input) {
     return rlp.encode(input, _toBuffer)
 }
 
-function decode(input) {
+/**
+ * @param input
+ * @return {Buffer}
+ */
+function decode(input) { console.log("ethrpc.decode", input, _toBuffer(input))
     return rlp.decode(_toBuffer(input))
     //todo: need implement
 }

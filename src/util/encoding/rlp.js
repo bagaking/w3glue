@@ -25,25 +25,6 @@ const {numOrStrToEvenHex} = require('./hex')
 const log = require("../log")
 
 /**
- * encode a item that is 'A string (ie. byte array)'
- * @param {Buffer} buf
- * @private
- */
-function _encodeBuf(buf) {
-    buf = Buffer.from(buf)
-    return buf.length === 1 && buf[0] < 128 ? buf : _appendHead(0x80, buf)
-}
-
-/**
- * encode a item that is 'A list of items'
- * @param {Array} arr
- * @private
- */
-function _encodeArr(arr) {
-    return _appendHead(0xc0, Buffer.concat(_.map(arr, _encodeBuf)))
-}
-
-/**
  * append the control word of the buffer
  *
  * @desc
@@ -64,10 +45,10 @@ function _encodeArr(arr) {
  */
 function _appendHead(typeOffset, buf) {
     let lenBuf = buf.length
-    if (lenBuf < 56) {
+    if (lenBuf < 56) { log.info("<56",typeOffset,buf, Buffer.concat([Buffer.from([typeOffset + lenBuf]), buf]).toString('hex'))
         // Concat with Buffer is about two times fast than Uint8Array
         return Buffer.concat([Buffer.from([typeOffset + lenBuf]), buf])
-    } else if (lenBuf < Number.MAX_SAFE_INTEGER) {
+    } else if (lenBuf < Number.MAX_SAFE_INTEGER) { log.info(">=56",buf)
         // there are up to 8 Byte using to present the length, thus the max length of data is 2 ** (8 * 8)
         // but in js, the largest accurate number is Number.MAX_SAFE_INTEGER
         let hexStrForLen = numOrStrToEvenHex(lenBuf)
@@ -81,13 +62,19 @@ function _appendHead(typeOffset, buf) {
     }
 }
 
-//
+/**
+ * Default method to convert item to buffer
+ * @param item
+ * @return {Buffer}
+ * @private
+ */
 function _defaultFnPretend(item) {
     if (_.isBuffer(item) || _.isString(item) || item instanceof Uint8Array) {
         return Buffer.from(item)
     }
     throw new Error('rle._defaultFnPretend : invalid type')
 }
+
 
 /**
  * encode an item
@@ -96,13 +83,19 @@ function _defaultFnPretend(item) {
  * @return {Buffer}
  */
 function encode(item, fnPretendItem = _defaultFnPretend) {
-    if (_.isArray(item)) {
-        return _encodeArr(item)
-    } else if (_.isFunction(fnPretendItem)) {
-        return _encodeBuf(fnPretendItem(item))
-    } else {
-        throw new Error("type error: item is not available (ie. byte array)")
+    if (!_.isFunction(fnPretendItem)) {
+        fnPretendItem = _defaultFnPretend
     }
+
+    const _encodeBuf = leaf => (leaf = fnPretendItem(leaf), leaf.length === 1 && leaf[0] < 128 ? leaf : _appendHead(0x80, leaf));
+
+    const _encodeArr = arr =>  _appendHead(0xc0, Buffer.concat(_.map(arr, _encode)));
+
+    const _encode = item => (_.isArray(item) ? _encodeArr : _encodeBuf)(item);
+
+    let result = _encode(item)
+    log.success("encode success", result.toString('hex'))
+    return result
 }
 
 /**
@@ -158,7 +151,7 @@ function _decodeArr(buf) {
      */
     const _take = len => {
         let ret = buf.slice(cur, cur += len)
-        if (cur >= buf.length) {
+        if (cur > buf.length) {
             log.err(`decode error: ${cur} out of range when slice ${buf.toString('hex')}(${buf.length})`)
             throw new Error('decode error: out of range when slice');
         }
@@ -179,20 +172,20 @@ function _decodeArr(buf) {
     let result = []
 
     while (cur < buf.length) {
-        let cw = buf[cur++]
+        let bufCw = _take(1)
+        let cw = bufCw[0]
         if (cw < 0x80) { // 0 ~ 0x7f = 128
-            result.push(cw);
+            result.push(bufCw); log.info("<0x80", cw);
         } else {
-            let len = _cw2len(cw)
+            let len = _cw2len(cw);
             let seg = _take(len)
-            log.verbose("d:", cw.toString(16), len)
+            log.verbose(">=0x80", cw, len);
             // buf item: 0x7f ~ 0xb7 = 56, 0xb8 ~ 0xbf = 8
             // arr item, 0xc0 ~ 0xf7 = 56, 0xf7 ~ 0xff = 8
-            result.push(cw < 0xc0 ? seg : decode(seg))
+            result.push(cw < 0xc0 ? seg : _decodeArr(seg));
         }
-
+        console.log("proc", cur, buf.length)
     }
-
     return result
 }
 
@@ -200,14 +193,15 @@ function _decodeArr(buf) {
  * decode an buffer
  * @param {Buffer} buf - encoded buffer
  */
-function decode(buf) {
+function decode(buf) { console.log("rlp.decode", buf)
     // only the first element is legal
     let results = _decodeArr(buf)
 
     if (results.length > 1) {
-        throw new Error("rlp : only single item is enabled")
+        throw new Error(`rlp : only single item is enabled ${results}`)
     }
 
+    log.success("decode success", results);
     return results[0]
 }
 
