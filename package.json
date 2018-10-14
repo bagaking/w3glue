@@ -40,6 +40,7 @@
     "mocha": "^5.2.0",
     "should": "^13.2.3",
     "webpack": "^4.19.0",
-    "webpack-cli": "^3.1.0"
+    "webpack-cli": "^3.1.0",
+    "ethereumjs-testing": "git+https://github.com/ethereumjs/ethereumjs-testing.git"
   }
 }

@@ -3,6 +3,7 @@ const ethrlp = require('../src/util/encoding/ethrlp')
 const rlp = require('../src/util/encoding/rlp')
 const should = require('should');
 const BN = require('bn.js')
+const testing = require('ethereumjs-testing')
 
 describe('invalid rlps', ()=> {
     it('should not crash on an invalid rlp', ()=> {
@@ -306,5 +307,24 @@ describe('bad values', () => {
             result = ethrlp.decode(a)
         } catch (e) {}
         assert.strictEqual(result, undefined)
+    })
+})
+
+describe('offical tests', function () {
+    it('pass all tests', function (done) {
+        const cases = testing.getSingleFile('RLPTests/rlptest.json')
+
+        for (let i in cases) {
+            let org = cases[i].in
+            // if we are testing a big number
+            if (org[0] === '#') {
+                let bn = new BN(org.slice(1))
+                org = Buffer.from(bn.toArray())
+            }
+
+            let encoded = ethrlp.encode(org)
+            encoded.toString('hex').should.equal(cases[i].out.toLowerCase())
+        }
+        done()
     })
 })
