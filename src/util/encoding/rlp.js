@@ -46,18 +46,18 @@ const log = require("../log")
 function _appendHead(typeOffset, buf) {
     let lenBuf = buf.length
     if (lenBuf < 56) {
-        log.info("<56", typeOffset, buf, Buffer.concat([Buffer.from([typeOffset + lenBuf]), buf]).toString('hex'))
+        //log.info("<56", typeOffset, buf, Buffer.concat([Buffer.from([typeOffset + lenBuf]), buf]).toString('hex'))
         // Concat with Buffer is about two times fast than Uint8Array
         return Buffer.concat([Buffer.from([typeOffset + lenBuf]), buf])
     } else if (lenBuf < Number.MAX_SAFE_INTEGER) {
-        log.info(">=56", buf)
+        //log.info(">=56", buf)
         // there are up to 8 Byte using to present the length, thus the max length of data is 2 ** (8 * 8)
         // but in js, the largest accurate number is Number.MAX_SAFE_INTEGER
         let hexStrForLen = numOrStrToEvenHex(lenBuf)
         let head = numOrStrToEvenHex(typeOffset + 55 + (hexStrForLen.length / 2)) // thus 56 ==> 1
         // pay attention to the 'hex', when decode using buf.toString('hex')
         // when input < 256, its equal to Buffer.from([input]), but it shouldn't happen, that's why we use this api
-        log.info(head, hexStrForLen)
+        //log.info(head, hexStrForLen)
         return Buffer.concat([Buffer.from(head + hexStrForLen, 'hex'), buf])
     } else {
         throw new Error(`content size ${lenBuf} exceeded`)
@@ -96,7 +96,7 @@ function encode(item, fnPretendItem = _defaultFnPretend) {
     const _encode = item => (_.isArray(item) ? _encodeArr : _encodeBuf)(item);
 
     let result = _encode(item)
-    log.success("encode success", result.toString('hex'))
+    //log.success("encode success", result.toString('hex'))
     return result
 }
 
@@ -107,7 +107,7 @@ function encode(item, fnPretendItem = _defaultFnPretend) {
  */
 function buf2Len(buf) {
     let hexLen = buf.toString('hex')
-    log.info(buf, hexLen)
+    //log.info(buf, hexLen)
     if (hexLen.startsWith('00')) throw new Error('invalid RLP: extra zeros');
     return parseInt(hexLen, 16)
 }
@@ -129,7 +129,7 @@ function decLen(buf, fnPretendItem = _defaultFnPretend) {
         if (len < 0) throw new Error('decode error: empty input');
         let end = 1 + (len - 55) // when dec, there no need to double char, cuz the 'hex'
         if (len >= buf.length) throw new Error('decode error: out of range');
-        log.verbose(buf, cw, len, end, buf2Len(buf.slice(1, end)))
+        //log.verbose(buf, cw, len, end, buf2Len(buf.slice(1, end)))
         return 1 + (len < 56 ? len : (len - 55) + buf2Len(buf.slice(1, end)))
     }
 }
@@ -140,7 +140,7 @@ function decLen(buf, fnPretendItem = _defaultFnPretend) {
  * @param {Buffer} buf - is considered buffered <arrItems>
  */
 function _decodeArr(buf) {
-    log.verbose(`decode: ${buf.toString('hex')}`)
+    //log.verbose(`decode: ${buf.toString('hex')}`)
     if (!_.isBuffer(buf)) {
         throw new Error("type error: the input of decode must be a buffer")
     }
@@ -154,7 +154,7 @@ function _decodeArr(buf) {
     const _take = len => {
         let ret = buf.slice(cur, cur += len)
         if (cur > buf.length) {
-            log.err(`decode error: ${cur} out of range when slice ${buf.toString('hex')}(${buf.length})`)
+            //log.err(`decode error: ${cur} out of range when slice ${buf.toString('hex')}(${buf.length})`)
             throw new Error('decode error: out of range when slice');
         }
         return ret
@@ -178,16 +178,16 @@ function _decodeArr(buf) {
         let cw = bufCw[0]
         if (cw < 0x80) { // 0 ~ 0x7f = 128
             result.push(bufCw);
-            log.info("<0x80", cw);
+            // log.info("<0x80", cw);
         } else {
             let len = _cw2len(cw);
             let seg = _take(len)
-            log.verbose(">=0x80", cw, len);
+            // log.verbose(">=0x80", cw, len);
             // buf item: 0x7f ~ 0xb7 = 56, 0xb8 ~ 0xbf = 8
             // arr item, 0xc0 ~ 0xf7 = 56, 0xf7 ~ 0xff = 8
             result.push(cw < 0xc0 ? seg : _decodeArr(seg));
         }
-        console.log("proc", cur, buf.length)
+        //console.log("proc", cur, buf.length)
     }
     return result
 }
@@ -197,16 +197,13 @@ function _decodeArr(buf) {
  * @param {Buffer} buf - encoded buffer
  */
 function decode(buf) {
-    console.log("rlp.decode", buf)
-
-
-    // only the first element is legal
+    //console.log("rlp.decode", buf)
     let results = _decodeArr(buf)
 
-    log.success("decode success", decLen(buf), results);
-    console.log(results)
+    // log.success("decode success", decLen(buf), results);
+    // console.log(results)
 
-    if (results.length > 1) {
+    if (results.length > 1) { // only the first element is legal
         throw new Error(`rlp : only single item is enabled ${results}`)
     }
 
