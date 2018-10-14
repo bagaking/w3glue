@@ -3,5 +3,6 @@
 module.exports = {
     "promisify": require("./promisify"),
     "numstr": require("./numstr"),
-    "log": require("./log")
+    "log": require("./log"),
+    "ethrlp": require("./encoding/ethrlp")
 }
