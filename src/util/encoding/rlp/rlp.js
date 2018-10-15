@@ -22,7 +22,7 @@
 const _ = require("lodash")
 const {Buffer} = require('safe-buffer')
 const {numOrStrToEvenHex} = require('./hex')
-const log = require("../log")
+const log = require("../../log")
 
 /**
  * append the control word of the buffer
