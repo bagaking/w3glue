@@ -25,6 +25,13 @@ describe('ethrlp encoding (string):', ()=> {
         rlp.decLen(e).should.equal(1)
         //console.log("eeeee", e, e.toString())
         e[0].should.equal(0x80)
+        let d = ethrlp.decode(e)
+        //console.log("ddddd", d, d.toString())
+        /**
+         * FIXME: there are same issue in package rlp.
+         * @see {@url https://github.com/ethereumjs/rlp/issues/28}
+         */
+        d[0].should.equal(0x0)
     })
 
 
@@ -271,7 +278,7 @@ describe('bad values', () => {
         // result.should.equal(undefined)
     })
 
-    it('invalid length', () => {
+    it('invalid length', () => { //FIXME: this test case went wrong.
         let a = Buffer.from('f86081000182520894b94f5374fce5edbc8e2a8697c15331677e6ebf0b0a801ca098ff921201554726367d2be8c804a7ff89ccf285ebc57dff8ae4c44b9c19ac4aa08887321be575c8095f789dd4c743dfe42c1820f9231f98a962b210e3ac2452a3', 'hex')
         let result
         try {
