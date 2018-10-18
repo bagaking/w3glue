@@ -20,6 +20,14 @@ describe('invalid rlps', ()=> {
 })
 
 describe('ethrlp encoding (string):', ()=> {
+    it('should return 0x80 when encode 0:', ()=> {
+        let e = ethrlp.encode(0)
+        rlp.decLen(e).should.equal(1)
+        //console.log("eeeee", e, e.toString())
+        e[0].should.equal(0x80)
+    })
+
+
     it('should return itself if single byte and less than 0x7f:', ()=> {
         let e = ethrlp.encode('a')
         rlp.decLen(e).should.equal(1)
